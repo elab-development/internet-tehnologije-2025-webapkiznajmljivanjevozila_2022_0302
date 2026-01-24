@@ -8,12 +8,12 @@ const BookingDocuments = () => {
 
     const car = useMemo(() => dummyCarData.find((c) => c._id === id), [id]);
 
-    const [idCardPdf, setIdCardPdf] = useState(null);      // optional
-    const [passportPdf, setPassportPdf] = useState(null);  // required
-    const [licensePdf, setLicensePdf] = useState(null);    // required
+    const [idCardPdf, setIdCardPdf] = useState(null);
+    const [passportPdf, setPassportPdf] = useState(null);
+    const [licensePdf, setLicensePdf] = useState(null);
 
     const [error, setError] = useState("");
-    const [showSuccess, setShowSuccess] = useState(false); // ✅ popup
+    const [showSuccess, setShowSuccess] = useState(false);
 
     const isFormValid = Boolean(passportPdf && licensePdf);
 
