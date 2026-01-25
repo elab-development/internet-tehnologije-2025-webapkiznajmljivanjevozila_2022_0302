@@ -53,7 +53,7 @@ const Sidebar = () => {
       </div>
 
       {/* NAME */}
-      <p className="mt-2 text-base max-md:hidden">{user?.name}</p>
+      <p className="mt-2 text-base max-md:hidden">My profile</p>
 
       {/* MENU */}
       <div className="w-full">
