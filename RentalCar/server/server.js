@@ -1,13 +1,12 @@
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
-import connectDB from "./configs/db.js";
-import userRouter from "./routes/userRoutes.js";
+import connectDB from "./config/db.js";
 
 // Initialize Express App
 const app = express();
 
-// Connect Database
+// Connect to Database
 await connectDB();
 
 // Middleware
