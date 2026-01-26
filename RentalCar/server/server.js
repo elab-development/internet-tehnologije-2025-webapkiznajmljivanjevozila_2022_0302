@@ -2,6 +2,8 @@ import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import connectDB from "./config/db.js";
+import userRouter from "./routes/userRoutes.js";
+import adminRouter from "./routes/ownerRoutes.js";
 
 // Initialize Express App
 const app = express();
@@ -15,6 +17,7 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.send("Server is running"));
 app.use('/api/user', userRouter)
+app.use('/api/admin', adminRouter)
 
 
 const PORT = process.env.PORT || 3000;
