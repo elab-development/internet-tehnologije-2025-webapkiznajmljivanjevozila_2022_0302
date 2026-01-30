@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { dummyDashboardData, assets } from "../../assets/assets";
+import { assets } from "../../assets/assets";
 import Title from "../../components/owner/Title";
 import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
-
-  const {axios, isOwner, currency} = useAppContext()
+  const { axios, isOwner, currency } = useAppContext();
 
   const [data, setData] = useState({
     totalCars: 0,
@@ -17,11 +17,7 @@ const Dashboard = () => {
   });
 
   const dashboardCards = [
-    {
-      title: "Total Cars",
-      value: data.totalCars,
-      icon: assets.carIconColored,
-    },
+    { title: "Total Cars", value: data.totalCars, icon: assets.carIconColored },
     {
       title: "Total Bookings",
       value: data.totalBookings,
@@ -37,25 +33,34 @@ const Dashboard = () => {
       value: data.completedBookings,
       icon: assets.listIconColored,
     },
-  ]
+  ];
 
-  const fetchDashboardData = async ()=>{
+  const fetchDashboardData = async () => {
     try {
-      const {data} = await axios.get('/api/owner/dashboard')
-      if (data.success){
-        setData(data.dashboardData)
-      }else{
-        toast.error(data.message)
+      const res = await axios.get("/api/owner/dashboard");
+      const payload = res.data;
+
+      if (payload.success) {
+        const dd = payload.dashboardData || {};
+
+        setData({
+          totalCars: dd.totalCars ?? 0,
+          totalBookings: dd.totalBookings ?? 0,
+          pendingBookings: dd.pendingBookings ?? 0,
+          completedBookings: dd.completedBookings ?? 0,
+          monthlyRevenue: dd.monthlyRevenue ?? 0,
+          recentBookings: (dd.recentBookings || []).filter(Boolean),
+        });
+      } else {
+        toast.error(payload.message || "Failed to load dashboard");
       }
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error?.response?.data?.message || error.message);
     }
-  }
+  };
 
   useEffect(() => {
-    if(isOwner){
-      fetchDashboardData()
-    }
+    if (isOwner) fetchDashboardData();
   }, [isOwner]);
 
   return (
@@ -89,7 +94,7 @@ const Dashboard = () => {
           <h1 className="text-lg font-medium">Recent Bookings</h1>
           <p className="text-gray-500">Latest customer bookings</p>
 
-          {data.recentBookings.map((booking, index) => (
+          {(data.recentBookings || []).filter(Boolean).map((booking, index) => (
             <div key={index} className="mt-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
@@ -102,10 +107,11 @@ const Dashboard = () => {
 
                 <div>
                   <p>
-                    {booking.car.brand} {booking.car.model}
+                    {booking?.car?.brand || "Deleted car"}{" "}
+                    {booking?.car?.model || ""}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {booking.createdAt.split("T")[0]}
+                    {booking?.createdAt ? booking.createdAt.split("T")[0] : ""}
                   </p>
                 </div>
               </div>
@@ -113,10 +119,10 @@ const Dashboard = () => {
               <div className="flex items-center gap-2 font-medium">
                 <p className="text-sm text-gray-500">
                   {currency}
-                  {booking.price}
+                  {booking?.price ?? 0}
                 </p>
                 <p className="px-3 py-0.5 border border-borderColor rounded-full text-sm">
-                  {booking.status}
+                  {booking?.status || "unknown"}
                 </p>
               </div>
             </div>
