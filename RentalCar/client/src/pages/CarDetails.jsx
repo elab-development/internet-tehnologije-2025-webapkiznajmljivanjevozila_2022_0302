@@ -2,9 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { assets, dummyCarData } from '../assets/assets'
 import Loader from '../components/Loader'
+import { useAppContext } from '../context/AppContext'
+import toast from 'react-hot-toast'
 
 const CarDetails = () => {
   const { id } = useParams()
+  const {cars, axios, pickupDate, setPickupDate, returnDate, setReturnDate} = useAppContext()
+
   const navigate = useNavigate()
   const [car, setCar] = useState(null)
 
@@ -12,14 +16,28 @@ const CarDetails = () => {
   const currency = import.meta.env.VITE_CURRENCY || "$"
 
   // ✅ SUBMIT → ide na Booking Documents
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    navigate(`/booking/${id}/documents`)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const {data} = await axios.post('/api/booking/create',{
+        car:id,
+        pickupDate, returnDate
+      })
+
+      if(data.success){
+        toast.success(data.message)
+        navigate('/my-bookings')
+      }else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
   }
 
   useEffect(() => {
-    setCar(dummyCarData.find(car => car._id === id))
-  }, [id])
+    setCar(cars.find(car => car._id === id))
+  }, [cars, id])
 
   if (!car) return <Loader />
 
@@ -110,7 +128,7 @@ const CarDetails = () => {
 
           <div className='flex flex-col gap-2'>
             <label htmlFor="pickup-date">Pickup Date</label>
-            <input
+            <input value={pickupDate} onChange={(e)=>setPickupDate(e.targer.value)}
               type="date"
               id="pickup-date"
               required
@@ -121,7 +139,7 @@ const CarDetails = () => {
 
           <div className='flex flex-col gap-2'>
             <label htmlFor="return-date">Return Date</label>
-            <input
+            <input value={returnDate} onChange={(e)=>setReturnDate(e.targer.value)}
               type="date"
               id="return-date"
               required

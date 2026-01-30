@@ -21,6 +21,9 @@ const Cars = () => {
   const isSearchData =
     pickupLocation.trim() && pickupDate.trim() && returnDate.trim();
 
+  // All cars (for /cars without search params)
+  const [cars, setCars] = useState([]);
+
   // Cars returned from availability endpoint
   const [availableCars, setAvailableCars] = useState([]);
 
@@ -57,6 +60,24 @@ const Cars = () => {
     setPage(1);
   };
 
+  // ✅ Fetch all cars for /cars page (no search params)
+  const fetchCars = async () => {
+    try {
+      // TODO: ako je tvoja ruta drugačija, promeni ovde:
+      const { data } = await axios.get("/api/owner/cars");
+
+      if (data.success) {
+        setCars(data.cars || []);
+      } else {
+        toast.error(data.message || "Failed to fetch cars");
+        setCars([]);
+      }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e.message);
+      setCars([]);
+    }
+  };
+
   const fetchAvailability = async () => {
     try {
       const { data } = await axios.post("/api/booking/check-availability", {
@@ -80,21 +101,30 @@ const Cars = () => {
     }
   };
 
+  // ✅ When query params exist -> availability search; otherwise load all cars
   useEffect(() => {
-    if (isSearchData) fetchAvailability();
-    else setAvailableCars([]);
-    // reset page on new search
     setPage(1);
+
+    if (isSearchData) {
+      fetchAvailability();
+    } else {
+      setAvailableCars([]);
+      fetchCars();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickupLocation, pickupDate, returnDate]);
+
+  // ✅ Base list depending on mode
+  const baseCars = isSearchData ? availableCars : cars;
 
   const filteredAndSorted = useMemo(() => {
     const q = input.trim().toLowerCase();
 
-    let list = (availableCars || []).filter((car) => {
+    let list = (baseCars || []).filter((car) => {
       const brand = (car.brand ?? "").toLowerCase();
       const model = (car.model ?? "").toLowerCase();
       const category = (car.category ?? "").toLowerCase();
-      const fuel = (car.fuel_type ?? "").toLowerCase(); // ako ti je fuelType, promeni ovde
+      const fuel = (car.fuel_type ?? "").toLowerCase();
       const transmission = (car.transmission ?? "").toLowerCase();
       const location = (car.location ?? "").toLowerCase();
 
@@ -145,12 +175,9 @@ const Cars = () => {
     }
 
     return list;
-  }, [availableCars, input, sortBy, types, priceRanges]);
+  }, [baseCars, input, sortBy, types, priceRanges]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE)
-  );
+  const totalPages = Math.max(1, Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE));
   const safePage = Math.min(page, totalPages);
 
   const pageItems = useMemo(() => {
@@ -171,12 +198,7 @@ const Cars = () => {
         />
 
         <div className="flex items-center bg-white px-4 mt-6 max-w-140 w-full h-12 rounded-full shadow">
-          <img
-            src={assets.search_icon}
-            alt=""
-            className="w-4.5 h-4.5 mr-2"
-          />
-
+          <img src={assets.search_icon} alt="" className="w-4.5 h-4.5 mr-2" />
           <input
             onChange={(e) => {
               setInput(e.target.value);
@@ -187,12 +209,7 @@ const Cars = () => {
             placeholder="Search by make, model, or features"
             className="w-full h-full outline-none text-gray-500"
           />
-
-          <img
-            src={assets.filter_icon}
-            alt=""
-            className="w-4.5 h-4.5 ml-2"
-          />
+          <img src={assets.filter_icon} alt="" className="w-4.5 h-4.5 ml-2" />
         </div>
       </div>
 
@@ -232,22 +249,20 @@ const Cars = () => {
                   Previous
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`w-10 h-10 rounded-full border transition-all
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-10 h-10 rounded-full border transition-all
                       ${
                         p === safePage
                           ? "bg-gray-100 border-gray-300"
                           : "bg-white border-gray-200 hover:bg-gray-50"
                       }`}
-                    >
-                      {p}
-                    </button>
-                  )
-                )}
+                  >
+                    {p}
+                  </button>
+                ))}
 
                 <button
                   onClick={goNext}
@@ -269,11 +284,7 @@ const Cars = () => {
           <aside className="space-y-6">
             <div className="bg-white rounded-2xl shadow p-5">
               <div className="flex items-center gap-3 border border-gray-200 rounded-full px-4 h-12">
-                <img
-                  src={assets.search_icon}
-                  alt=""
-                  className="w-4.5 h-4.5 opacity-70"
-                />
+                <img src={assets.search_icon} alt="" className="w-4.5 h-4.5 opacity-70" />
                 <input
                   value={input}
                   onChange={(e) => {
@@ -284,18 +295,12 @@ const Cars = () => {
                   placeholder="Search by make"
                   className="w-full h-full outline-none text-gray-500"
                 />
-                <img
-                  src={assets.filter_icon}
-                  alt=""
-                  className="w-4.5 h-4.5 opacity-70"
-                />
+                <img src={assets.filter_icon} alt="" className="w-4.5 h-4.5 opacity-70" />
               </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Sort By
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Sort By</h3>
               <select
                 value={sortBy}
                 onChange={(e) => {
@@ -311,9 +316,7 @@ const Cars = () => {
             </div>
 
             <div className="bg-white rounded-2xl shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Car Type
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Car Type</h3>
               <div className="space-y-3 text-gray-600">
                 {Object.keys(types).map((t) => (
                   <label key={t} className="flex items-center gap-3">
@@ -334,45 +337,22 @@ const Cars = () => {
                 Price Range (per day)
               </h3>
               <div className="space-y-3 text-gray-600">
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={priceRanges["0-150"]}
-                    onChange={() => togglePrice("0-150")}
-                    className="w-5 h-5"
-                  />
-                  <span>$0 to $150</span>
-                </label>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={priceRanges["150-220"]}
-                    onChange={() => togglePrice("150-220")}
-                    className="w-5 h-5"
-                  />
-                  <span>$150 to $220</span>
-                </label>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={priceRanges["220-300"]}
-                    onChange={() => togglePrice("220-300")}
-                    className="w-5 h-5"
-                  />
-                  <span>$220 to $300</span>
-                </label>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={priceRanges["300+"]}
-                    onChange={() => togglePrice("300+")}
-                    className="w-5 h-5"
-                  />
-                  <span>$300+</span>
-                </label>
+                {[
+                  ["0-150", "$0 to $150"],
+                  ["150-220", "$150 to $220"],
+                  ["220-300", "$220 to $300"],
+                  ["300+", "$300+"],
+                ].map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={priceRanges[key]}
+                      onChange={() => togglePrice(key)}
+                      className="w-5 h-5"
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
               </div>
             </div>
           </aside>
