@@ -1,10 +1,31 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import toast from "react-hot-toast";
+
 import Title from "../components/Title";
 import CarCard from "../components/CarCard";
-import { assets, dummyCarData } from "../assets/assets";
+import { assets } from "../assets/assets";
+import { useAppContext } from "../context/AppContext";
 
 const Cars = () => {
+  const { axios } = useAppContext();
+
   const [input, setInput] = useState("");
+
+  // URL params
+  const [searchParams] = useSearchParams();
+  const pickupLocation = searchParams.get("pickupLocation") || "";
+  const pickupDate = searchParams.get("pickupDate") || "";
+  const returnDate = searchParams.get("returnDate") || "";
+
+  const isSearchData =
+    pickupLocation.trim() && pickupDate.trim() && returnDate.trim();
+
+  // All cars (for /cars without search params)
+  const [cars, setCars] = useState([]);
+
+  // Cars returned from availability endpoint
+  const [availableCars, setAvailableCars] = useState([]);
 
   // Right-side filters
   const [sortBy, setSortBy] = useState("relevant"); // relevant | highToLow | lowToHigh
@@ -18,8 +39,6 @@ const Cars = () => {
     "Grand Tourer": false,
   });
 
-  // Price per day ranges (adjust to your numbers)
-  // Example: your cards show values like 130/day, 200/day, 209/day, 300/day
   const [priceRanges, setPriceRanges] = useState({
     "0-150": false,
     "150-220": false,
@@ -41,11 +60,67 @@ const Cars = () => {
     setPage(1);
   };
 
+  // ✅ Fetch all cars for /cars page (no search params)
+  const fetchCars = async () => {
+    try {
+      // TODO: ako je tvoja ruta drugačija, promeni ovde:
+      const { data } = await axios.get("/api/owner/cars");
+
+      if (data.success) {
+        setCars(data.cars || []);
+      } else {
+        toast.error(data.message || "Failed to fetch cars");
+        setCars([]);
+      }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e.message);
+      setCars([]);
+    }
+  };
+
+  const fetchAvailability = async () => {
+    try {
+      const { data } = await axios.post("/api/booking/check-availability", {
+        pickupLocation: pickupLocation.trim(),
+        pickupDate,
+        returnDate,
+      });
+
+      if (data.success) {
+        setAvailableCars(data.availableCars || []);
+        if (!data.availableCars || data.availableCars.length === 0) {
+          toast.error("No cars available");
+        }
+      } else {
+        toast.error(data.message || "Availability check failed");
+        setAvailableCars([]);
+      }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e.message);
+      setAvailableCars([]);
+    }
+  };
+
+  // ✅ When query params exist -> availability search; otherwise load all cars
+  useEffect(() => {
+    setPage(1);
+
+    if (isSearchData) {
+      fetchAvailability();
+    } else {
+      setAvailableCars([]);
+      fetchCars();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickupLocation, pickupDate, returnDate]);
+
+  // ✅ Base list depending on mode
+  const baseCars = isSearchData ? availableCars : cars;
+
   const filteredAndSorted = useMemo(() => {
-    // 1) Search
     const q = input.trim().toLowerCase();
 
-    let list = dummyCarData.filter((car) => {
+    let list = (baseCars || []).filter((car) => {
       const brand = (car.brand ?? "").toLowerCase();
       const model = (car.model ?? "").toLowerCase();
       const category = (car.category ?? "").toLowerCase();
@@ -64,14 +139,14 @@ const Cars = () => {
 
       if (!matchesSearch) return false;
 
-      // 2) Type filter (category)
+      // Type filter
       const anyTypeChecked = Object.values(types).some(Boolean);
       if (anyTypeChecked) {
         const cat = car.category ?? "";
         if (!types[cat]) return false;
       }
 
-      // 3) Price filter (per day)
+      // Price filter
       const anyPriceChecked = Object.values(priceRanges).some(Boolean);
       if (anyPriceChecked) {
         const price = Number(car.pricePerDay ?? 0);
@@ -88,16 +163,19 @@ const Cars = () => {
       return true;
     });
 
-    // 4) Sort
+    // Sort
     if (sortBy === "highToLow") {
-      list = [...list].sort((a, b) => Number(b.pricePerDay ?? 0) - Number(a.pricePerDay ?? 0));
+      list = [...list].sort(
+        (a, b) => Number(b.pricePerDay ?? 0) - Number(a.pricePerDay ?? 0)
+      );
     } else if (sortBy === "lowToHigh") {
-      list = [...list].sort((a, b) => Number(a.pricePerDay ?? 0) - Number(b.pricePerDay ?? 0));
+      list = [...list].sort(
+        (a, b) => Number(a.pricePerDay ?? 0) - Number(b.pricePerDay ?? 0)
+      );
     }
-    // relevant: leave order as-is
 
     return list;
-  }, [input, sortBy, types, priceRanges]);
+  }, [baseCars, input, sortBy, types, priceRanges]);
 
   const totalPages = Math.max(1, Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE));
   const safePage = Math.min(page, totalPages);
@@ -119,10 +197,8 @@ const Cars = () => {
           subTitle="Browse our selection of premium vehicles available for your next adventure"
         />
 
-        {/* Your existing search bar (kept) */}
         <div className="flex items-center bg-white px-4 mt-6 max-w-140 w-full h-12 rounded-full shadow">
           <img src={assets.search_icon} alt="" className="w-4.5 h-4.5 mr-2" />
-
           <input
             onChange={(e) => {
               setInput(e.target.value);
@@ -133,7 +209,6 @@ const Cars = () => {
             placeholder="Search by make, model, or features"
             className="w-full h-full outline-none text-gray-500"
           />
-
           <img src={assets.filter_icon} alt="" className="w-4.5 h-4.5 ml-2" />
         </div>
       </div>
@@ -144,14 +219,12 @@ const Cars = () => {
           Showing {filteredAndSorted.length} Cars
         </p>
 
-        {/* 2-column layout: cars + right filters */}
         <div className="mt-6 xl:px-20 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
           {/* Left: cards */}
           <div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {pageItems.map((car) => (
                 <div key={car._id} className="h-full">
-                  {/* Make cards same size by forcing wrapper height + letting card stretch */}
                   <div className="h-full flex">
                     <div className="w-full">
                       <CarCard car={car} />
@@ -161,14 +234,17 @@ const Cars = () => {
               ))}
             </div>
 
-            {/* Pagination (only if more than 1 page) */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-3 mt-10">
                 <button
                   onClick={goPrev}
                   disabled={safePage === 1}
                   className={`px-6 py-2 rounded-full font-medium transition-all
-                    ${safePage === 1 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-sky-200 text-gray-700 hover:bg-sky-300"}`}
+                    ${
+                      safePage === 1
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "bg-sky-200 text-gray-700 hover:bg-sky-300"
+                    }`}
                 >
                   Previous
                 </button>
@@ -178,7 +254,11 @@ const Cars = () => {
                     key={p}
                     onClick={() => setPage(p)}
                     className={`w-10 h-10 rounded-full border transition-all
-                      ${p === safePage ? "bg-gray-100 border-gray-300" : "bg-white border-gray-200 hover:bg-gray-50"}`}
+                      ${
+                        p === safePage
+                          ? "bg-gray-100 border-gray-300"
+                          : "bg-white border-gray-200 hover:bg-gray-50"
+                      }`}
                   >
                     {p}
                   </button>
@@ -188,7 +268,11 @@ const Cars = () => {
                   onClick={goNext}
                   disabled={safePage === totalPages}
                   className={`px-6 py-2 rounded-full font-medium transition-all
-                    ${safePage === totalPages ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-sky-500 text-white hover:bg-sky-600"}`}
+                    ${
+                      safePage === totalPages
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "bg-sky-500 text-white hover:bg-sky-600"
+                    }`}
                 >
                   Next
                 </button>
@@ -196,9 +280,8 @@ const Cars = () => {
             )}
           </div>
 
-          {/* Right: Filters (wider) */}
+          {/* Right: Filters */}
           <aside className="space-y-6">
-            {/* Search small (optional duplicate UI like screenshot; you asked “pored mog postojeceg filtera zelim i ovaj”) */}
             <div className="bg-white rounded-2xl shadow p-5">
               <div className="flex items-center gap-3 border border-gray-200 rounded-full px-4 h-12">
                 <img src={assets.search_icon} alt="" className="w-4.5 h-4.5 opacity-70" />
@@ -216,7 +299,6 @@ const Cars = () => {
               </div>
             </div>
 
-            {/* Sort By */}
             <div className="bg-white rounded-2xl shadow p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Sort By</h3>
               <select
@@ -233,7 +315,6 @@ const Cars = () => {
               </select>
             </div>
 
-            {/* Car Type */}
             <div className="bg-white rounded-2xl shadow p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Car Type</h3>
               <div className="space-y-3 text-gray-600">
@@ -251,49 +332,27 @@ const Cars = () => {
               </div>
             </div>
 
-            {/* Price Range (per day) */}
             <div className="bg-white rounded-2xl shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Price Range (per day)</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Price Range (per day)
+              </h3>
               <div className="space-y-3 text-gray-600">
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={priceRanges["0-150"]}
-                    onChange={() => togglePrice("0-150")}
-                    className="w-5 h-5"
-                  />
-                  <span>$0 to $150</span>
-                </label>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={priceRanges["150-220"]}
-                    onChange={() => togglePrice("150-220")}
-                    className="w-5 h-5"
-                  />
-                  <span>$150 to $220</span>
-                </label>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={priceRanges["220-300"]}
-                    onChange={() => togglePrice("220-300")}
-                    className="w-5 h-5"
-                  />
-                  <span>$220 to $300</span>
-                </label>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={priceRanges["300+"]}
-                    onChange={() => togglePrice("300+")}
-                    className="w-5 h-5"
-                  />
-                  <span>$300+</span>
-                </label>
+                {[
+                  ["0-150", "$0 to $150"],
+                  ["150-220", "$150 to $220"],
+                  ["220-300", "$220 to $300"],
+                  ["300+", "$300+"],
+                ].map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={priceRanges[key]}
+                      onChange={() => togglePrice(key)}
+                      className="w-5 h-5"
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
               </div>
             </div>
           </aside>
