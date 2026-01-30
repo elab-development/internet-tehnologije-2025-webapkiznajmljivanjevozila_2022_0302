@@ -1,6 +1,10 @@
 import React, { useState } from "react";
+import { useAppContext } from "../context/AppContext";
 
-const Login = ({ setShowLogin }) => {
+const Login = () => {
+
+  const {setShowLogin, axios, setToken} = useAppContext()
+
   const [mode, setMode] = useState("login"); // "login" | "signup"
 
   const onSubmitHandler = async (e) => {
