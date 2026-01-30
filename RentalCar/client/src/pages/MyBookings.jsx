@@ -1,16 +1,31 @@
 import React, { useEffect, useState } from 'react'
 import { dummyMyBookingsData, assets } from '../assets/assets'
 import Title from '../components/Title'
+import { useAppContext } from '../context/AppContext'
+import toast from 'react-hot-toast'
 
 const MyBookings = () => {
+
+  const {axios, user, currency} = useAppContext()
+
   const [bookings, setBookings] = useState([])
 
-  // Ako nemaš VITE_CURRENCY u .env, koristi $
-  const currency = import.meta.env.VITE_CURRENCY || '$'
+  const fetchMyBookings = async ()=>{
+    try {
+      const {data} = await axios.get('/api/booking/user')
+      if(data.success){
+        setBookings(data.bookings)
+      }else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
 
   useEffect(() => {
-    setBookings(dummyMyBookingsData)
-  }, [])
+    user && fetchMyBookings()
+  }, [user])
 
   const formatDate = (d) => {
     if (!d) return '-'
