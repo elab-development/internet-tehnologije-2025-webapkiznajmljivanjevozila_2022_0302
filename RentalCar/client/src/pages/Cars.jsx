@@ -65,7 +65,7 @@ const Cars = () => {
   const fetchCars = async () => {
     try {
       // TODO: ako je tvoja ruta drugačija, promeni ovde:
-      const { data } = await axios.get("/api/owner/cars");
+      const { data } = await axios.get("/api/cars");
 
       if (data.success) {
         setCars(data.cars || []);
