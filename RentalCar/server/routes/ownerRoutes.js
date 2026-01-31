@@ -1,15 +1,17 @@
 import express from "express";
 import { protect } from "../middleware/auth.js";
+import upload from "../middleware/multer.js";
+
 import {
   addCar,
   changeRoleToOwner,
   deleteCar,
   getDashboardData,
   getOwnerCars,
+  getOwnerStats,
   toggleCarAvailability,
   updateUserImage,
 } from "../controllers/ownerController.js";
-import upload from "../middleware/multer.js";
 
 const ownerRouter = express.Router();
 
@@ -44,6 +46,10 @@ ownerRouter.post("/change-role", protect, changeRoleToOwner);
  *   post:
  *     tags: [Owner]
  *     summary: Dodavanje automobila (multipart sa slikom)
+ *     description: >
+ *       Backend očekuje multipart/form-data sa poljima:
+ *       - image (file)
+ *       - carData (string) -> JSON string sa podacima o autu (brand, model, pricePerDay, itd.)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -52,16 +58,14 @@ ownerRouter.post("/change-role", protect, changeRoleToOwner);
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required: [image, carData]
  *             properties:
  *               image:
  *                 type: string
  *                 format: binary
- *               brand:
+ *               carData:
  *                 type: string
- *               model:
- *                 type: string
- *               pricePerDay:
- *                 type: number
+ *                 description: JSON string (npr. {"brand":"BMW","model":"X5","pricePerDay":80,"location":"New York"})
  *     responses:
  *       200:
  *         description: Auto dodat
@@ -104,8 +108,10 @@ ownerRouter.get("/cars", protect, getOwnerCars);
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [carId]
  *             properties:
- *               carId: { type: string }
+ *               carId:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Dostupnost promenjena
@@ -130,8 +136,10 @@ ownerRouter.post("/toggle-car", protect, toggleCarAvailability);
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [carId]
  *             properties:
- *               carId: { type: string }
+ *               carId:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Auto obrisan
@@ -147,18 +155,43 @@ ownerRouter.post("/delete-car", protect, deleteCar);
  * /api/owner/dashboard:
  *   get:
  *     tags: [Owner]
- *     summary: Owner dashboard podaci
+ *     summary: Owner dashboard podaci (KPI + recent + monthlyRevenue)
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Dashboard
+ *         description: Dashboard podaci
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  */
 ownerRouter.get("/dashboard", protect, getDashboardData);
+
+/**
+ * @openapi
+ * /api/owner/stats:
+ *   get:
+ *     tags: [Owner]
+ *     summary: Podaci za grafikone (rezervacije po mesecima, prihod, statusi, top cars)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Godina za agregaciju (default = trenutna)
+ *     responses:
+ *       200:
+ *         description: Stats za dashboard
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ */
+ownerRouter.get("/stats", protect, getOwnerStats);
 
 /**
  * @openapi
@@ -174,6 +207,7 @@ ownerRouter.get("/dashboard", protect, getDashboardData);
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required: [image]
  *             properties:
  *               image:
  *                 type: string
