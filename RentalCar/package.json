@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "imagekit": "^6.0.0"
+    "dotenv": "^17.2.3",
+    "imagekit": "^6.0.0",
+    "migrate-mongo": "^14.0.7"
   }
 }

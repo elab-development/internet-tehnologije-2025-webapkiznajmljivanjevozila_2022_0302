@@ -1,0 +1,63 @@
+{
+  "name": "migrate-mongo",
+  "version": "14.0.7",
+  "description": "A database migration tool for MongoDB in Node",
+  "type": "module",
+  "main": "lib/migrate-mongo.js",
+  "exports": {
+    ".": {
+      "import": "./lib/migrate-mongo.js",
+      "require": "./lib/migrate-mongo.cjs"
+    }
+  },
+  "bin": {
+    "migrate-mongo": "bin/migrate-mongo.js"
+  },
+  "scripts": {
+    "test": "vitest run --coverage --exclude test/integration.test.js",
+    "test:watch": "vitest --exclude test/integration.test.js",
+    "test:ci": "vitest run --coverage --exclude test/integration.test.js",
+    "test:integration": "vitest run test/integration.test.js --no-coverage",
+    "lint": "eslint lib/ test/",
+    "lint:fix": "eslint lib/ test/ --fix"
+  },
+  "author": "Sebastian Van Sande",
+  "license": "MIT",
+  "keywords": [
+    "migrate mongo mongodb migrations database"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seppevs/migrate-mongo.git"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "preferGlobal": true,
+  "dependencies": {
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.2"
+  },
+  "peerDependencies": {
+    "mongodb": "^4.4.1 || ^5.0.0 || ^6.0.0  || ^7.0.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.15",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vitest": "^0.5.4",
+    "mongodb-memory-server": "^10.4.0",
+    "vitest": "^4.0.15"
+  },
+  "overrides": {
+    "test-exclude": "^7.0.1"
+  },
+  "eslintConfig": {
+    "extends": [
+      "prettier"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2018
+    }
+  }
+}
