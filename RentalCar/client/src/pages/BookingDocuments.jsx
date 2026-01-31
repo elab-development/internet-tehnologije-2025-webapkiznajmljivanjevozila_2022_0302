@@ -25,6 +25,10 @@ const BookingDocuments = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ✅ Payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("CARD"); // CARD | CASH
+
   const isFormValid = Boolean(passportPdf && licensePdf);
 
   useEffect(() => {
@@ -37,7 +41,6 @@ const BookingDocuments = () => {
     formData.append("file", file); // server očekuje field name "file"
     formData.append("documentType", documentType);
 
-    // ✅ NEMOJ ručno Content-Type, axios postavlja boundary sam
     const { data } = await axios.post("/api/document/upload", formData);
 
     if (!data?.success) {
@@ -46,11 +49,11 @@ const BookingDocuments = () => {
     return data.document;
   };
 
+  // ✅ 1) submit forme: upload dokumenata, pa otvori payment modal
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // ✅ mora biti ulogovan korisnik (upload + booking + payment su protected)
     if (!token) {
       toast.error("Please login to continue.");
       setShowLogin(true);
@@ -65,7 +68,7 @@ const BookingDocuments = () => {
     try {
       setIsSubmitting(true);
 
-      // 1) pending booking info iz localStorage
+      // pending booking info iz localStorage
       const pending = JSON.parse(localStorage.getItem("pendingBooking") || "null");
 
       if (!pending || pending.car !== id) {
@@ -74,14 +77,36 @@ const BookingDocuments = () => {
         return;
       }
 
-      // 2) Upload dokumenata (ID_CARD optional + PASSPORT + DRIVING_LICENSE required)
+      // Upload dokumenata (ID_CARD optional + PASSPORT + DRIVING_LICENSE required)
       if (idCardPdf) {
         await uploadDoc(idCardPdf, "ID_CARD");
       }
       await uploadDoc(passportPdf, "PASSPORT");
       await uploadDoc(licensePdf, "DRIVING_LICENSE");
 
-      // 3) Create booking
+      // ✅ nakon uspešnog upload-a dokumenata → otvori payment modal
+      setShowPaymentModal(true);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ✅ 2) final confirm iz modala: kreiraj booking + payment
+  const handleConfirmPayment = async () => {
+    try {
+      setIsSubmitting(true);
+
+      const pending = JSON.parse(localStorage.getItem("pendingBooking") || "null");
+      if (!pending || pending.car !== id) {
+        toast.error("Missing booking data. Please select dates again.");
+        setShowPaymentModal(false);
+        navigate(`/car-details/${id}`);
+        return;
+      }
+
+      // 3) Create booking (tek sad!)
       const bookingRes = await axios.post("/api/booking/create", pending);
       const bookingData = bookingRes?.data;
 
@@ -98,22 +123,19 @@ const BookingDocuments = () => {
         return;
       }
 
-      // 4) Amount: prioritet booking.price, fallback na bookingData.price, pa pending.price
-      const amount =
-        booking?.price ??
-        bookingData?.price ??
-        pending?.price;
+      // 4) Amount: booking.price (iz backend createBooking)
+      const amount = booking?.price ?? bookingData?.price ?? pending?.price;
 
       if (amount == null) {
         toast.error("Payment amount is missing.");
         return;
       }
 
-      // 5) Create payment
+      // 5) Create payment (CARD=PAID, CASH=PENDING u backendu)
       const payRes = await axios.post("/api/payment", {
         bookingId,
         amount,
-        method: "CARD",
+        method: paymentMethod, // ✅ "CARD" | "CASH"
         currency: "EUR",
       });
 
@@ -125,6 +147,7 @@ const BookingDocuments = () => {
       // 6) Cleanup + redirect
       toast.success("Booking completed!");
       localStorage.removeItem("pendingBooking");
+      setShowPaymentModal(false);
       navigate("/my-bookings");
       window.scrollTo(0, 0);
     } catch (err) {
@@ -257,11 +280,66 @@ const BookingDocuments = () => {
             {isSubmitting ? "Processing..." : "Book Now"}
           </button>
 
-          <p className="text-center text-sm">
-            No credit card required to reserve
-          </p>
+          <p className="text-center text-sm">No credit card required to reserve</p>
         </form>
       </div>
+
+      {/* ✅ Payment Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              Choose payment method
+            </h3>
+
+            <div className="space-y-3 mb-6 text-gray-700">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pay"
+                  value="CARD"
+                  checked={paymentMethod === "CARD"}
+                  onChange={() => setPaymentMethod("CARD")}
+                  disabled={isSubmitting}
+                />
+                Card
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pay"
+                  value="CASH"
+                  checked={paymentMethod === "CASH"}
+                  onChange={() => setPaymentMethod("CASH")}
+                  disabled={isSubmitting}
+                />
+                Cash
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmPayment}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-dull"
+              >
+                {isSubmitting ? "Processing..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
