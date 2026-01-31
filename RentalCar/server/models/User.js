@@ -11,8 +11,10 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     image: { type: String, default: "" },
+
+    documents: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);

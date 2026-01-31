@@ -1,5 +1,6 @@
 import React from 'react'
 import Title from './Title'
+import {motion} from 'motion/react'
 
 const Testimonial = () => {
     const cardsData = [

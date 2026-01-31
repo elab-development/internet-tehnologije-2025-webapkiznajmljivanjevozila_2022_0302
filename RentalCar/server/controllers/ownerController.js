@@ -99,8 +99,6 @@ export const toggleCarAvailability = async (req, res) => {
   }
 };
 
-// Api to delete a car
-// Api to delete a car
 export const deleteCar = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -114,14 +112,23 @@ export const deleteCar = async (req, res) => {
       return res.json({ success: false, message: "Unauthorized" });
     }
 
+    await Booking.updateMany(
+      { owner: _id, car: carId, status: { $ne: "canceled" } },
+      { $set: { status: "canceled" } }
+    );
+
     await Car.findByIdAndDelete(carId);
 
-    return res.json({ success: true, message: "Car Removed" });
+    return res.json({
+      success: true,
+      message: "Car Removed. All related bookings canceled.",
+    });
   } catch (error) {
     console.log(error.message);
     return res.json({ success: false, message: error.message });
   }
 };
+
 
 
 // API to get Dashboard Data

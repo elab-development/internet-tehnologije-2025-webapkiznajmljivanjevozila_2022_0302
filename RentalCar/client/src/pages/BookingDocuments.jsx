@@ -1,198 +1,269 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { assets, dummyCarData } from "../assets/assets";
+import { assets } from "../assets/assets";
+import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const BookingDocuments = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-    const car = useMemo(() => dummyCarData.find((c) => c._id === id), [id]);
+  const { cars, axios, token, setShowLogin } = useAppContext();
 
-    const [idCardPdf, setIdCardPdf] = useState(null);      // optional
-    const [passportPdf, setPassportPdf] = useState(null);  // required
-    const [licensePdf, setLicensePdf] = useState(null);    // required
+  const carFromContext = useMemo(
+    () => (Array.isArray(cars) ? cars : []).find((c) => c?._id === id) || null,
+    [cars, id]
+  );
 
-    const [error, setError] = useState("");
-    const [showSuccess, setShowSuccess] = useState(false); // ✅ popup
+  const [car, setCar] = useState(carFromContext);
 
-    const isFormValid = Boolean(passportPdf && licensePdf);
+  // Upload state
+  const [idCardPdf, setIdCardPdf] = useState(null); // optional
+  const [passportPdf, setPassportPdf] = useState(null); // required
+  const [licensePdf, setLicensePdf] = useState(null); // required
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setError("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-        if (!passportPdf || !licensePdf) {
-            setError("Please upload required documents: Passport and Driver’s License.");
-            return;
-        }
+  const isFormValid = Boolean(passportPdf && licensePdf);
 
-        // ✅ otvori popup (nema alert)
-        setShowSuccess(true);
-    };
+  useEffect(() => {
+    setCar(carFromContext);
+  }, [carFromContext]);
 
-    // ✅ klik na Confirm: snimi auto kao booked + idi na Home
-    const handleConfirm = () => {
-        if (!car) return;
+  // ✅ helper: upload jednog dokumenta
+  const uploadDoc = async (file, documentType) => {
+    const formData = new FormData();
+    formData.append("file", file); // server očekuje field name "file"
+    formData.append("documentType", documentType);
 
-        const bookedCars = JSON.parse(localStorage.getItem("bookedCars")) || [];
+    // ✅ NEMOJ ručno Content-Type, axios postavlja boundary sam
+    const { data } = await axios.post("/api/document/upload", formData);
 
-        // da se ne duplira ako neko klikne 2x
-        if (!bookedCars.includes(car._id)) {
-            bookedCars.push(car._id);
-            localStorage.setItem("bookedCars", JSON.stringify(bookedCars));
-        }
+    if (!data?.success) {
+      throw new Error(data?.message || "Document upload failed");
+    }
+    return data.document;
+  };
 
-        setShowSuccess(false);
-        navigate("/");
-        window.scrollTo(0, 0);
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-    if (!car) {
-        return (
-            <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16">
-                <p className="text-gray-500">Car not found.</p>
-            </div>
-        );
+    // ✅ mora biti ulogovan korisnik (upload + booking + payment su protected)
+    if (!token) {
+      toast.error("Please login to continue.");
+      setShowLogin(true);
+      return;
     }
 
+    if (!passportPdf || !licensePdf) {
+      setError("Please upload required documents: Passport and Driver’s License.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      // 1) pending booking info iz localStorage
+      const pending = JSON.parse(localStorage.getItem("pendingBooking") || "null");
+
+      if (!pending || pending.car !== id) {
+        toast.error("Missing booking data. Please select dates again.");
+        navigate(`/car-details/${id}`);
+        return;
+      }
+
+      // 2) Upload dokumenata (ID_CARD optional + PASSPORT + DRIVING_LICENSE required)
+      if (idCardPdf) {
+        await uploadDoc(idCardPdf, "ID_CARD");
+      }
+      await uploadDoc(passportPdf, "PASSPORT");
+      await uploadDoc(licensePdf, "DRIVING_LICENSE");
+
+      // 3) Create booking
+      const bookingRes = await axios.post("/api/booking/create", pending);
+      const bookingData = bookingRes?.data;
+
+      if (!bookingData?.success) {
+        toast.error(bookingData?.message || "Booking failed");
+        return;
+      }
+
+      const booking = bookingData.booking;
+      const bookingId = booking?._id;
+
+      if (!bookingId) {
+        toast.error("Booking created, but booking id is missing.");
+        return;
+      }
+
+      // 4) Amount: prioritet booking.price, fallback na bookingData.price, pa pending.price
+      const amount =
+        booking?.price ??
+        bookingData?.price ??
+        pending?.price;
+
+      if (amount == null) {
+        toast.error("Payment amount is missing.");
+        return;
+      }
+
+      // 5) Create payment
+      const payRes = await axios.post("/api/payment", {
+        bookingId,
+        amount,
+        method: "CARD",
+        currency: "EUR",
+      });
+
+      if (!payRes?.data?.success) {
+        toast.error(payRes?.data?.message || "Payment failed");
+        return;
+      }
+
+      // 6) Cleanup + redirect
+      toast.success("Booking completed!");
+      localStorage.removeItem("pendingBooking");
+      navigate("/my-bookings");
+      window.scrollTo(0, 0);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!car) {
     return (
-        <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16 relative">
-            {/* Back */}
-            <button
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
-            >
-                <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
-                Back
-            </button>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-                {/* Left: summary */}
-                <div className="lg:col-span-2">
-                    <img
-                        src={car.image}
-                        alt=""
-                        className="w-full h-auto object-cover rounded-xl mb-6 shadow-md"
-                    />
-
-                    <h1 className="text-3xl font-bold">
-                        {car.brand} {car.model}
-                    </h1>
-                    <p className="text-gray-500 text-lg">
-                        {car.category} • {car.year}
-                    </p>
-
-                    <hr className="border-borderColor my-6" />
-
-                    <p className="text-gray-500">
-                        Please upload your documents in PDF format to proceed with the booking.
-                    </p>
-                </div>
-
-                {/* Right: upload form */}
-                <form
-                    onSubmit={handleSubmit}
-                    className="shadow-lg h-max sticky top-18 rounded-xl p-6 space-y-6 text-gray-500"
-                >
-                    <h2 className="text-xl font-semibold text-gray-800">Documents</h2>
-
-                    {/* ID card optional */}
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="id-card" className="flex items-center justify-between">
-                            <span>National ID Card (PDF)</span>
-                            <span className="text-xs text-gray-400">Optional</span>
-                        </label>
-                        <input
-                            id="id-card"
-                            type="file"
-                            accept="application/pdf"
-                            className="border border-borderColor px-3 py-2 rounded-lg"
-                            onChange={(e) => setIdCardPdf(e.target.files?.[0] ?? null)}
-                        />
-                        {idCardPdf && (
-                            <p className="text-xs text-gray-400">Selected: {idCardPdf.name}</p>
-                        )}
-                    </div>
-
-                    {/* Passport required */}
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="passport" className="flex items-center justify-between">
-                            <span>Passport (PDF)</span>
-                            <span className="text-xs text-red-500">Required</span>
-                        </label>
-                        <input
-                            id="passport"
-                            type="file"
-                            accept="application/pdf"
-                            className="border border-borderColor px-3 py-2 rounded-lg"
-                            required
-                            onChange={(e) => setPassportPdf(e.target.files?.[0] ?? null)}
-                        />
-                        {passportPdf && (
-                            <p className="text-xs text-gray-400">Selected: {passportPdf.name}</p>
-                        )}
-                    </div>
-
-                    {/* Driver's license required */}
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="license" className="flex items-center justify-between">
-                            <span>Driver’s License (PDF)</span>
-                            <span className="text-xs text-red-500">Required</span>
-                        </label>
-                        <input
-                            id="license"
-                            type="file"
-                            accept="application/pdf"
-                            className="border border-borderColor px-3 py-2 rounded-lg"
-                            required
-                            onChange={(e) => setLicensePdf(e.target.files?.[0] ?? null)}
-                        />
-                        {licensePdf && (
-                            <p className="text-xs text-gray-400">Selected: {licensePdf.name}</p>
-                        )}
-                    </div>
-
-                    {error && <p className="text-sm text-red-500">{error}</p>}
-
-                    <button
-                        type="submit"
-                        disabled={!isFormValid}
-                        className={`w-full transition-all py-3 font-medium text-white rounded-xl cursor-pointer
-              ${isFormValid ? "bg-primary hover:bg-primary-dull" : "bg-gray-400 cursor-not-allowed"}`}
-                    >
-                        Book Now
-                    </button>
-
-                    <p className="text-center text-sm">
-                        No credit card required to reserve
-                    </p>
-                </form>
-            </div>
-
-            {/* ✅ SUCCESS POPUP */}
-            {showSuccess && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl p-6 w-[90%] max-w-md text-center space-y-4">
-                        <h2 className="text-2xl font-semibold text-gray-800">
-                            Booking Confirmed
-                        </h2>
-                        <p className="text-gray-500">
-                            Your booking is confirmed! <br />
-                            Thank you for choosing our car rental service.
-                        </p>
-
-                        <button
-                            type="button"
-                            onClick={handleConfirm}
-                            className="w-full bg-primary hover:bg-primary-dull transition-all py-3 rounded-xl text-white font-medium"
-                        >
-                            Confirm
-                        </button>
-                    </div>
-                </div>
-            )}
-        </div>
+      <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16">
+        <p className="text-gray-500">Car not found.</p>
+      </div>
     );
+  }
+
+  return (
+    <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16 relative">
+      {/* Back */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
+      >
+        <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
+        Back
+      </button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+        {/* Left: summary */}
+        <div className="lg:col-span-2">
+          <img
+            src={car.image}
+            alt={`${car.brand ?? ""} ${car.model ?? ""}`}
+            className="w-full h-auto object-cover rounded-xl mb-6 shadow-md"
+          />
+
+          <h1 className="text-3xl font-bold">
+            {car.brand} {car.model}
+          </h1>
+          <p className="text-gray-500 text-lg">
+            {car.category} • {car.year}
+          </p>
+
+          <hr className="border-borderColor my-6" />
+
+          <p className="text-gray-500">
+            Please upload your documents in PDF format to proceed with the booking.
+          </p>
+        </div>
+
+        {/* Right: upload form */}
+        <form
+          onSubmit={handleSubmit}
+          className="shadow-lg h-max sticky top-18 rounded-xl p-6 space-y-6 text-gray-500"
+        >
+          <h2 className="text-xl font-semibold text-gray-800">Documents</h2>
+
+          {/* ID card optional */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="id-card" className="flex items-center justify-between">
+              <span>National ID Card (PDF)</span>
+              <span className="text-xs text-gray-400">Optional</span>
+            </label>
+            <input
+              id="id-card"
+              type="file"
+              accept="application/pdf"
+              className="border border-borderColor px-3 py-2 rounded-lg"
+              onChange={(e) => setIdCardPdf(e.target.files?.[0] ?? null)}
+              disabled={isSubmitting}
+            />
+            {idCardPdf && (
+              <p className="text-xs text-gray-400">Selected: {idCardPdf.name}</p>
+            )}
+          </div>
+
+          {/* Passport required */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="passport" className="flex items-center justify-between">
+              <span>Passport (PDF)</span>
+              <span className="text-xs text-red-500">Required</span>
+            </label>
+            <input
+              id="passport"
+              type="file"
+              accept="application/pdf"
+              className="border border-borderColor px-3 py-2 rounded-lg"
+              required
+              onChange={(e) => setPassportPdf(e.target.files?.[0] ?? null)}
+              disabled={isSubmitting}
+            />
+            {passportPdf && (
+              <p className="text-xs text-gray-400">Selected: {passportPdf.name}</p>
+            )}
+          </div>
+
+          {/* Driver's license required */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="license" className="flex items-center justify-between">
+              <span>Driver’s License (PDF)</span>
+              <span className="text-xs text-red-500">Required</span>
+            </label>
+            <input
+              id="license"
+              type="file"
+              accept="application/pdf"
+              className="border border-borderColor px-3 py-2 rounded-lg"
+              required
+              onChange={(e) => setLicensePdf(e.target.files?.[0] ?? null)}
+              disabled={isSubmitting}
+            />
+            {licensePdf && (
+              <p className="text-xs text-gray-400">Selected: {licensePdf.name}</p>
+            )}
+          </div>
+
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={!isFormValid || isSubmitting}
+            className={`w-full transition-all py-3 font-medium text-white rounded-xl cursor-pointer
+              ${
+                isFormValid && !isSubmitting
+                  ? "bg-primary hover:bg-primary-dull"
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
+          >
+            {isSubmitting ? "Processing..." : "Book Now"}
+          </button>
+
+          <p className="text-center text-sm">
+            No credit card required to reserve
+          </p>
+        </form>
+      </div>
+    </div>
+  );
 };
 
 export default BookingDocuments;

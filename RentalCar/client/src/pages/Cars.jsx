@@ -6,6 +6,7 @@ import Title from "../components/Title";
 import CarCard from "../components/CarCard";
 import { assets } from "../assets/assets";
 import { useAppContext } from "../context/AppContext";
+import { motion } from "motion/react";
 
 const Cars = () => {
   const { axios } = useAppContext();
@@ -64,7 +65,7 @@ const Cars = () => {
   const fetchCars = async () => {
     try {
       // TODO: ako je tvoja ruta drugačija, promeni ovde:
-      const { data } = await axios.get("/api/owner/cars");
+      const { data } = await axios.get("/api/cars");
 
       if (data.success) {
         setCars(data.cars || []);
@@ -166,18 +167,21 @@ const Cars = () => {
     // Sort
     if (sortBy === "highToLow") {
       list = [...list].sort(
-        (a, b) => Number(b.pricePerDay ?? 0) - Number(a.pricePerDay ?? 0)
+        (a, b) => Number(b.pricePerDay ?? 0) - Number(a.pricePerDay ?? 0),
       );
     } else if (sortBy === "lowToHigh") {
       list = [...list].sort(
-        (a, b) => Number(a.pricePerDay ?? 0) - Number(b.pricePerDay ?? 0)
+        (a, b) => Number(a.pricePerDay ?? 0) - Number(b.pricePerDay ?? 0),
       );
     }
 
     return list;
   }, [baseCars, input, sortBy, types, priceRanges]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE),
+  );
   const safePage = Math.min(page, totalPages);
 
   const pageItems = useMemo(() => {
@@ -191,13 +195,23 @@ const Cars = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col items-center py-20 bg-light max-md:px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="flex flex-col items-center py-20 bg-light max-md:px-4"
+      >
         <Title
           title="Available Cars"
           subTitle="Browse our selection of premium vehicles available for your next adventure"
         />
 
-        <div className="flex items-center bg-white px-4 mt-6 max-w-140 w-full h-12 rounded-full shadow">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex items-center bg-white px-4 mt-6 max-w-140 w-full h-12 rounded-full shadow"
+        >
           <img src={assets.search_icon} alt="" className="w-4.5 h-4.5 mr-2" />
           <input
             onChange={(e) => {
@@ -210,11 +224,16 @@ const Cars = () => {
             className="w-full h-full outline-none text-gray-500"
           />
           <img src={assets.filter_icon} alt="" className="w-4.5 h-4.5 ml-2" />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Main content */}
-      <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-10">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="px-6 md:px-16 lg:px-24 xl:px-32 mt-10"
+      >
         <p className="text-gray-500 xl:px-20 max-w-7xl mx-auto">
           Showing {filteredAndSorted.length} Cars
         </p>
@@ -224,13 +243,19 @@ const Cars = () => {
           <div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {pageItems.map((car) => (
-                <div key={car._id} className="h-full">
+                <motion.div
+                  key={car._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 * car._id }}
+                  className="h-full"
+                >
                   <div className="h-full flex">
                     <div className="w-full">
                       <CarCard car={car} />
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
 
@@ -249,20 +274,22 @@ const Cars = () => {
                   Previous
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`w-10 h-10 rounded-full border transition-all
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`w-10 h-10 rounded-full border transition-all
                       ${
                         p === safePage
                           ? "bg-gray-100 border-gray-300"
                           : "bg-white border-gray-200 hover:bg-gray-50"
                       }`}
-                  >
-                    {p}
-                  </button>
-                ))}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
 
                 <button
                   onClick={goNext}
@@ -284,7 +311,11 @@ const Cars = () => {
           <aside className="space-y-6">
             <div className="bg-white rounded-2xl shadow p-5">
               <div className="flex items-center gap-3 border border-gray-200 rounded-full px-4 h-12">
-                <img src={assets.search_icon} alt="" className="w-4.5 h-4.5 opacity-70" />
+                <img
+                  src={assets.search_icon}
+                  alt=""
+                  className="w-4.5 h-4.5 opacity-70"
+                />
                 <input
                   value={input}
                   onChange={(e) => {
@@ -295,12 +326,18 @@ const Cars = () => {
                   placeholder="Search by make"
                   className="w-full h-full outline-none text-gray-500"
                 />
-                <img src={assets.filter_icon} alt="" className="w-4.5 h-4.5 opacity-70" />
+                <img
+                  src={assets.filter_icon}
+                  alt=""
+                  className="w-4.5 h-4.5 opacity-70"
+                />
               </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Sort By</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Sort By
+              </h3>
               <select
                 value={sortBy}
                 onChange={(e) => {
@@ -316,7 +353,9 @@ const Cars = () => {
             </div>
 
             <div className="bg-white rounded-2xl shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Car Type</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Car Type
+              </h3>
               <div className="space-y-3 text-gray-600">
                 {Object.keys(types).map((t) => (
                   <label key={t} className="flex items-center gap-3">
@@ -357,7 +396,7 @@ const Cars = () => {
             </div>
           </aside>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

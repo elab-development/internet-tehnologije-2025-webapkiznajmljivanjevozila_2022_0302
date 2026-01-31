@@ -123,7 +123,7 @@ export const createBooking = async (req, res) => {
     );
     const price = (carData.pricePerDay || 0) * noOfDays;
 
-    await Booking.create({
+    const booking = await Booking.create({
       car,
       owner: carData.owner,
       user: _id,
@@ -132,7 +132,12 @@ export const createBooking = async (req, res) => {
       price,
     });
 
-    return res.json({ success: true, message: "Booking Created" });
+    return res.json({
+      success: true,
+      message: "Booking Created",
+      booking, 
+    });
+
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ success: false, message: error.message });
