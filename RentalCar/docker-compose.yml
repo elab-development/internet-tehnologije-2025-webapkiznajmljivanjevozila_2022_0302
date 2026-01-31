@@ -16,11 +16,7 @@ services:
       - ./server/.env
 
     environment:
-      #treba prekopirati zbog kljuceva
-      
-
-    #depends_on:
-     # - mongo
+     
     ports:
       - "3000:3000"
 
