@@ -117,10 +117,7 @@ export const createBooking = async (req, res) => {
     }
 
     // Calculate price based on pickupDate and returnDate
-    const noOfDays = Math.max(
-      1,
-      Math.ceil((ret - pick) / (1000 * 60 * 60 * 24))
-    );
+    const noOfDays = Math.max(1, Math.ceil((ret - pick) / (1000 * 60 * 60 * 24)));
     const price = (carData.pricePerDay || 0) * noOfDays;
 
     const booking = await Booking.create({
@@ -135,9 +132,8 @@ export const createBooking = async (req, res) => {
     return res.json({
       success: true,
       message: "Booking Created",
-      booking, 
+      booking,
     });
-
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ success: false, message: error.message });
@@ -194,9 +190,7 @@ export const changeBookingStatus = async (req, res) => {
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Booking not found" });
+      return res.status(404).json({ success: false, message: "Booking not found" });
     }
 
     if (booking.owner.toString() !== _id.toString()) {

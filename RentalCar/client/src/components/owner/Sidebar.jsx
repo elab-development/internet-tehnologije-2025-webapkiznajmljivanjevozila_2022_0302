@@ -9,7 +9,7 @@ const Sidebar = () => {
   const {user, axios, fetchUser} = useAppContext()
   const location = useLocation();
   const [image, setImage] = useState(null);
-
+//com
   const updateImage = async () => {
   try {
     if (!image) return toast.error("Select an image first");
