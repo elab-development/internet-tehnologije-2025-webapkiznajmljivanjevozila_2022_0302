@@ -1,0 +1,37 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: carteh-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  server:
+    build: ./server
+    container_name: carteh-server
+
+    # Učitaj sve promenljive iz server/.env (NE COMMITUJEŠ taj fajl)
+    env_file:
+      - ./server/.env
+
+    environment:
+      #treba prekopirati zbog kljuceva
+      
+
+    #depends_on:
+     # - mongo
+    ports:
+      - "3000:3000"
+
+  client:
+    build: ./client
+    container_name: carteh-client
+    depends_on:
+      - server
+    ports:
+      - "5173:80"
+
+volumes:
+  mongo-data:
+
