@@ -9,7 +9,9 @@ import { useAppContext } from "../context/AppContext";
 import { motion } from "motion/react";
 
 const Cars = () => {
-  const { axios } = useAppContext();
+  // ✅ dodali smo selectedCurrency, BASE_PRICE_CURRENCY, convertAmount
+  const { axios, selectedCurrency, BASE_PRICE_CURRENCY, convertAmount } =
+    useAppContext();
 
   const [input, setInput] = useState("");
 
@@ -46,6 +48,15 @@ const Cars = () => {
     "220-300": false,
     "300+": false,
   });
+
+  // ✅ NOVO: labels u izabranoj valuti (samo prikaz)
+  const [priceRangeLabels, setPriceRangeLabels] = useState({
+    "0-150": "$0 to $150",
+    "150-220": "$150 to $220",
+    "220-300": "$220 to $300",
+    "300+": "$300+",
+  });
+  const [priceLabelLoading, setPriceLabelLoading] = useState(false);
 
   // Pagination
   const ITEMS_PER_PAGE = 6;
@@ -118,6 +129,58 @@ const Cars = () => {
   // ✅ Base list depending on mode
   const baseCars = isSearchData ? availableCars : cars;
 
+  // ✅ NOVO: konverzija price range labela kad se promeni valuta
+  useEffect(() => {
+    let alive = true;
+
+    const fmt0 = (n) => `${Number(n).toFixed(0)} ${selectedCurrency}`;
+
+    const run = async () => {
+      // ako nema convertAmount ili valuta nije postavljena, ostavi fallback
+      if (!convertAmount || !selectedCurrency) return;
+
+      setPriceLabelLoading(true);
+      try {
+        // granice su u baznoj valuti (npr. EUR)
+        const a0 = await convertAmount(0, BASE_PRICE_CURRENCY, selectedCurrency);
+        const a150 = await convertAmount(
+          150,
+          BASE_PRICE_CURRENCY,
+          selectedCurrency
+        );
+        const a220 = await convertAmount(
+          220,
+          BASE_PRICE_CURRENCY,
+          selectedCurrency
+        );
+        const a300 = await convertAmount(
+          300,
+          BASE_PRICE_CURRENCY,
+          selectedCurrency
+        );
+
+        const next = {
+          "0-150": `${fmt0(a0)} to ${fmt0(a150)}`,
+          "150-220": `${fmt0(a150)} to ${fmt0(a220)}`,
+          "220-300": `${fmt0(a220)} to ${fmt0(a300)}`,
+          "300+": `${fmt0(a300)}+`,
+        };
+
+        if (alive) setPriceRangeLabels(next);
+      } catch {
+        // fallback ostaje stari
+      } finally {
+        if (alive) setPriceLabelLoading(false);
+      }
+    };
+
+    run();
+
+    return () => {
+      alive = false;
+    };
+  }, [selectedCurrency, BASE_PRICE_CURRENCY, convertAmount]);
+
   const filteredAndSorted = useMemo(() => {
     const q = input.trim().toLowerCase();
 
@@ -147,7 +210,8 @@ const Cars = () => {
         if (!types[cat]) return false;
       }
 
-      // Price filter
+      // Price filter (NE MENJAMO LOGIKU)
+      // Filtrira se u baznoj valuti jer je car.pricePerDay u toj valuti.
       const anyPriceChecked = Object.values(priceRanges).some(Boolean);
       if (anyPriceChecked) {
         const price = Number(car.pricePerDay ?? 0);
@@ -167,11 +231,11 @@ const Cars = () => {
     // Sort
     if (sortBy === "highToLow") {
       list = [...list].sort(
-        (a, b) => Number(b.pricePerDay ?? 0) - Number(a.pricePerDay ?? 0),
+        (a, b) => Number(b.pricePerDay ?? 0) - Number(a.pricePerDay ?? 0)
       );
     } else if (sortBy === "lowToHigh") {
       list = [...list].sort(
-        (a, b) => Number(a.pricePerDay ?? 0) - Number(b.pricePerDay ?? 0),
+        (a, b) => Number(a.pricePerDay ?? 0) - Number(b.pricePerDay ?? 0)
       );
     }
 
@@ -180,7 +244,7 @@ const Cars = () => {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE),
+    Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE)
   );
   const safePage = Math.min(page, totalPages);
 
@@ -247,7 +311,7 @@ const Cars = () => {
                   key={car._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 * car._id }}
+                  transition={{ duration: 0.4 }}
                   className="h-full"
                 >
                   <div className="h-full flex">
@@ -288,7 +352,7 @@ const Cars = () => {
                     >
                       {p}
                     </button>
-                  ),
+                  )
                 )}
 
                 <button
@@ -372,15 +436,22 @@ const Cars = () => {
             </div>
 
             <div className="bg-white rounded-2xl shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">
                 Price Range (per day)
               </h3>
+
+              {/* ✅ mali hint da je u valuti */}
+              <p className="text-sm text-gray-500 mb-4">
+                Showing in <span className="font-medium">{selectedCurrency}</span>
+                {priceLabelLoading ? " (converting...)" : ""}
+              </p>
+
               <div className="space-y-3 text-gray-600">
                 {[
-                  ["0-150", "$0 to $150"],
-                  ["150-220", "$150 to $220"],
-                  ["220-300", "$220 to $300"],
-                  ["300+", "$300+"],
+                  ["0-150", priceRangeLabels["0-150"]],
+                  ["150-220", priceRangeLabels["150-220"]],
+                  ["220-300", priceRangeLabels["220-300"]],
+                  ["300+", priceRangeLabels["300+"]],
                 ].map(([key, label]) => (
                   <label key={key} className="flex items-center gap-3">
                     <input

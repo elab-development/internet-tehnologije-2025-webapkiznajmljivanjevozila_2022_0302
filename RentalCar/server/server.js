@@ -9,7 +9,7 @@ import bookingRouter from "./routes/bookingRoutes.js";
 import carRouter from "./routes/carRoutes.js";
 import documentRouter from "./routes/documentRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
-
+import integrationsRouter from "./routes/integrationsRoutes.js";
 
 // Initialize Express App
 const app = express();
@@ -28,10 +28,7 @@ app.use("/api/booking", bookingRouter);
 app.use("/api/cars", carRouter);
 app.use("/api/document", documentRouter);
 app.use("/api/payment", paymentRouter);
-
-
-
-
+app.use("/api/integrations", integrationsRouter);
 
 
 const PORT = process.env.PORT || 3000;
