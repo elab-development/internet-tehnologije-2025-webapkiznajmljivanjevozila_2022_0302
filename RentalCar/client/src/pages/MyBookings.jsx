@@ -79,7 +79,7 @@ const MyBookings = () => {
                 <div className="rounded-md overflow-hidden mb-3">
                   <img
                     src={booking?.car?.image}
-                    alt={`${booking?.car?.brand ?? ""} ${booking?.car?.model ?? ""}`}
+                    alt={`${booking?.car?.brand ?? "Car"} ${booking?.car?.model ?? "Removed"}`}
                     className="w-full h-auto aspect-video object-cover"
                   />
                 </div>
@@ -154,10 +154,6 @@ const MyBookings = () => {
 
                   <p>Booked on {formatDate(booking?.createdAt)}</p>
                 </div>
-
-                <button className="self-end px-4 py-2 border rounded hover:bg-black hover:text-white transition">
-                  View Details
-                </button>
               </div>
             </motion.div>
           );
