@@ -8,67 +8,65 @@ const BookingDocuments = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { cars, axios } = useAppContext();
+  const { cars, axios, token, setShowLogin } = useAppContext();
 
-  
   const carFromContext = useMemo(
     () => (Array.isArray(cars) ? cars : []).find((c) => c?._id === id) || null,
-    [cars, id],
+    [cars, id]
   );
 
   const [car, setCar] = useState(carFromContext);
 
   // Upload state
-  const [idCardPdf, setIdCardPdf] = useState(null); 
-  const [passportPdf, setPassportPdf] = useState(null); 
-  const [licensePdf, setLicensePdf] = useState(null); 
+  const [idCardPdf, setIdCardPdf] = useState(null); // optional
+  const [passportPdf, setPassportPdf] = useState(null); // required
+  const [licensePdf, setLicensePdf] = useState(null); // required
 
   const [error, setError] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isFormValid = Boolean(passportPdf && licensePdf);
 
   useEffect(() => {
-    if (carFromContext) {
-      setCar(carFromContext);
-      return;
+    setCar(carFromContext);
+  }, [carFromContext]);
+
+  // ✅ helper: upload jednog dokumenta
+  const uploadDoc = async (file, documentType) => {
+    const formData = new FormData();
+    formData.append("file", file); // server očekuje field name "file"
+    formData.append("documentType", documentType);
+
+    // ✅ NEMOJ ručno Content-Type, axios postavlja boundary sam
+    const { data } = await axios.post("/api/document/upload", formData);
+
+    if (!data?.success) {
+      throw new Error(data?.message || "Document upload failed");
     }
+    return data.document;
+  };
 
-    (async () => {
-      try {
-        const { data } = await axios.get(`/api/cars/${id}`);
-        if (data?.success && data?.car) {
-          setCar(data.car);
-        } else {
-          setCar(null);
-        }
-      } catch (e) {
-        setCar(null);
-      }
-    })();
-  }, [carFromContext, axios, id]);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!passportPdf || !licensePdf) {
-      setError(
-        "Please upload required documents: Passport and Driver’s License.",
-      );
+    // ✅ mora biti ulogovan korisnik (upload + booking + payment su protected)
+    if (!token) {
+      toast.error("Please login to continue.");
+      setShowLogin(true);
       return;
     }
 
-    setShowSuccess(true);
-  };
+    if (!passportPdf || !licensePdf) {
+      setError("Please upload required documents: Passport and Driver’s License.");
+      return;
+    }
 
-  
-  const handleConfirm = async () => {
     try {
-      
-      const pending = JSON.parse(
-        localStorage.getItem("pendingBooking") || "null",
-      );
+      setIsSubmitting(true);
+
+      // 1) pending booking info iz localStorage
+      const pending = JSON.parse(localStorage.getItem("pendingBooking") || "null");
 
       if (!pending || pending.car !== id) {
         toast.error("Missing booking data. Please select dates again.");
@@ -76,22 +74,63 @@ const BookingDocuments = () => {
         return;
       }
 
-      
-
-      
-      const { data } = await axios.post("/api/booking/create", pending);
-
-      if (data?.success) {
-        toast.success(data.message || "Booking created!");
-        localStorage.removeItem("pendingBooking");
-        setShowSuccess(false);
-        navigate("/my-bookings");
-        window.scrollTo(0, 0);
-      } else {
-        toast.error(data?.message || "Booking failed");
+      // 2) Upload dokumenata (ID_CARD optional + PASSPORT + DRIVING_LICENSE required)
+      if (idCardPdf) {
+        await uploadDoc(idCardPdf, "ID_CARD");
       }
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e.message);
+      await uploadDoc(passportPdf, "PASSPORT");
+      await uploadDoc(licensePdf, "DRIVING_LICENSE");
+
+      // 3) Create booking
+      const bookingRes = await axios.post("/api/booking/create", pending);
+      const bookingData = bookingRes?.data;
+
+      if (!bookingData?.success) {
+        toast.error(bookingData?.message || "Booking failed");
+        return;
+      }
+
+      const booking = bookingData.booking;
+      const bookingId = booking?._id;
+
+      if (!bookingId) {
+        toast.error("Booking created, but booking id is missing.");
+        return;
+      }
+
+      // 4) Amount: prioritet booking.price, fallback na bookingData.price, pa pending.price
+      const amount =
+        booking?.price ??
+        bookingData?.price ??
+        pending?.price;
+
+      if (amount == null) {
+        toast.error("Payment amount is missing.");
+        return;
+      }
+
+      // 5) Create payment
+      const payRes = await axios.post("/api/payment", {
+        bookingId,
+        amount,
+        method: "CARD",
+        currency: "EUR",
+      });
+
+      if (!payRes?.data?.success) {
+        toast.error(payRes?.data?.message || "Payment failed");
+        return;
+      }
+
+      // 6) Cleanup + redirect
+      toast.success("Booking completed!");
+      localStorage.removeItem("pendingBooking");
+      navigate("/my-bookings");
+      window.scrollTo(0, 0);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -119,7 +158,7 @@ const BookingDocuments = () => {
         <div className="lg:col-span-2">
           <img
             src={car.image}
-            alt=""
+            alt={`${car.brand ?? ""} ${car.model ?? ""}`}
             className="w-full h-auto object-cover rounded-xl mb-6 shadow-md"
           />
 
@@ -133,8 +172,7 @@ const BookingDocuments = () => {
           <hr className="border-borderColor my-6" />
 
           <p className="text-gray-500">
-            Please upload your documents in PDF format to proceed with the
-            booking.
+            Please upload your documents in PDF format to proceed with the booking.
           </p>
         </div>
 
@@ -147,10 +185,7 @@ const BookingDocuments = () => {
 
           {/* ID card optional */}
           <div className="flex flex-col gap-2">
-            <label
-              htmlFor="id-card"
-              className="flex items-center justify-between"
-            >
+            <label htmlFor="id-card" className="flex items-center justify-between">
               <span>National ID Card (PDF)</span>
               <span className="text-xs text-gray-400">Optional</span>
             </label>
@@ -160,20 +195,16 @@ const BookingDocuments = () => {
               accept="application/pdf"
               className="border border-borderColor px-3 py-2 rounded-lg"
               onChange={(e) => setIdCardPdf(e.target.files?.[0] ?? null)}
+              disabled={isSubmitting}
             />
             {idCardPdf && (
-              <p className="text-xs text-gray-400">
-                Selected: {idCardPdf.name}
-              </p>
+              <p className="text-xs text-gray-400">Selected: {idCardPdf.name}</p>
             )}
           </div>
 
           {/* Passport required */}
           <div className="flex flex-col gap-2">
-            <label
-              htmlFor="passport"
-              className="flex items-center justify-between"
-            >
+            <label htmlFor="passport" className="flex items-center justify-between">
               <span>Passport (PDF)</span>
               <span className="text-xs text-red-500">Required</span>
             </label>
@@ -184,20 +215,16 @@ const BookingDocuments = () => {
               className="border border-borderColor px-3 py-2 rounded-lg"
               required
               onChange={(e) => setPassportPdf(e.target.files?.[0] ?? null)}
+              disabled={isSubmitting}
             />
             {passportPdf && (
-              <p className="text-xs text-gray-400">
-                Selected: {passportPdf.name}
-              </p>
+              <p className="text-xs text-gray-400">Selected: {passportPdf.name}</p>
             )}
           </div>
 
           {/* Driver's license required */}
           <div className="flex flex-col gap-2">
-            <label
-              htmlFor="license"
-              className="flex items-center justify-between"
-            >
+            <label htmlFor="license" className="flex items-center justify-between">
               <span>Driver’s License (PDF)</span>
               <span className="text-xs text-red-500">Required</span>
             </label>
@@ -208,11 +235,10 @@ const BookingDocuments = () => {
               className="border border-borderColor px-3 py-2 rounded-lg"
               required
               onChange={(e) => setLicensePdf(e.target.files?.[0] ?? null)}
+              disabled={isSubmitting}
             />
             {licensePdf && (
-              <p className="text-xs text-gray-400">
-                Selected: {licensePdf.name}
-              </p>
+              <p className="text-xs text-gray-400">Selected: {licensePdf.name}</p>
             )}
           </div>
 
@@ -220,11 +246,15 @@ const BookingDocuments = () => {
 
           <button
             type="submit"
-            disabled={!isFormValid}
+            disabled={!isFormValid || isSubmitting}
             className={`w-full transition-all py-3 font-medium text-white rounded-xl cursor-pointer
-              ${isFormValid ? "bg-primary hover:bg-primary-dull" : "bg-gray-400 cursor-not-allowed"}`}
+              ${
+                isFormValid && !isSubmitting
+                  ? "bg-primary hover:bg-primary-dull"
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
           >
-            Book Now
+            {isSubmitting ? "Processing..." : "Book Now"}
           </button>
 
           <p className="text-center text-sm">
@@ -232,29 +262,6 @@ const BookingDocuments = () => {
           </p>
         </form>
       </div>
-
-      {/* Success popup */}
-      {showSuccess && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-[90%] max-w-md text-center space-y-4">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              Booking Confirmed
-            </h2>
-            <p className="text-gray-500">
-              Your booking is confirmed! <br />
-              Thank you for choosing our car rental service.
-            </p>
-
-            <button
-              type="button"
-              onClick={handleConfirm}
-              className="w-full bg-primary hover:bg-primary-dull transition-all py-3 rounded-xl text-white font-medium"
-            >
-              Confirm
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
