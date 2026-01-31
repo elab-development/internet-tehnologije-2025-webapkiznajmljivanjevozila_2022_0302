@@ -6,7 +6,12 @@ import {
   getOwnerBookings,
   getUserBookings,
 } from "../controllers/bookingController.js";
+
 import { protect } from "../middleware/auth.js";
+import { canAccessBooking } from "../middleware/idor.js";
+
+import { validateBody } from "../middleware/validate.js";
+import { createBookingSchema, changeStatusSchema } from "../validators/bookingSchemas.js";
 
 const bookingRouter = express.Router();
 
@@ -17,26 +22,6 @@ const bookingRouter = express.Router();
  *     description: Rezervacije i dostupnost
  */
 
-/**
- * @openapi
- * /api/booking/check-availability:
- *   post:
- *     tags: [Booking]
- *     summary: Provera dostupnosti vozila u periodu
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/AvailabilityRequest'
- *     responses:
- *       200:
- *         description: Dostupnost
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiResponse'
- */
 bookingRouter.post("/check-availability", checkAvailabilityOfCar);
 
 /**
@@ -56,47 +41,16 @@ bookingRouter.post("/check-availability", checkAvailabilityOfCar);
  *     responses:
  *       200:
  *         description: Rezervacija kreirana
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiResponse'
  */
-bookingRouter.post("/create", protect, createBooking);
+bookingRouter.post(
+  "/create",
+  protect,
+  validateBody(createBookingSchema),
+  createBooking
+);
 
-/**
- * @openapi
- * /api/booking/user:
- *   get:
- *     tags: [Booking]
- *     summary: Rezervacije ulogovanog korisnika
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista rezervacija korisnika
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiResponse'
- */
 bookingRouter.get("/user", protect, getUserBookings);
 
-/**
- * @openapi
- * /api/booking/owner:
- *   get:
- *     tags: [Booking]
- *     summary: Rezervacije owner-a (samo njegove)
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista rezervacija za owner vozila
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiResponse'
- */
 bookingRouter.get("/owner", protect, getOwnerBookings);
 
 /**
@@ -104,7 +58,7 @@ bookingRouter.get("/owner", protect, getOwnerBookings);
  * /api/booking/change-status:
  *   post:
  *     tags: [Booking]
- *     summary: Promena statusa rezervacije (npr. owner/admin)
+ *     summary: Promena statusa rezervacije (owner/admin)
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -116,11 +70,13 @@ bookingRouter.get("/owner", protect, getOwnerBookings);
  *     responses:
  *       200:
  *         description: Status promenjen
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiResponse'
  */
-bookingRouter.post("/change-status", protect, changeBookingStatus);
+bookingRouter.post(
+  "/change-status",
+  protect,
+  validateBody(changeStatusSchema),
+  canAccessBooking,
+  changeBookingStatus
+);
 
 export default bookingRouter;
