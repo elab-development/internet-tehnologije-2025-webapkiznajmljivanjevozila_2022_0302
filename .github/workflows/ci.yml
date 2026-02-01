@@ -2,9 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ "main", "master", "develop", "feature/**" ]
   pull_request:
-    branches: [ "main", "master", "develop" ]
 
 jobs:
   test_build:
@@ -22,24 +20,24 @@ jobs:
 
       # ----- CLIENT -----
       - name: Client - install
-        working-directory: client
+        working-directory: RENTALCAR/client
         run: npm ci
 
       - name: Client - tests (if present)
-        working-directory: client
+        working-directory: RENTALCAR/client
         run: npm test --if-present
 
       - name: Client - build (if present)
-        working-directory: client
+        working-directory: RENTALCAR/client
         run: npm run build --if-present
 
       # ----- SERVER -----
       - name: Server - install
-        working-directory: server
+        working-directory: RENTALCAR/server
         run: npm ci
 
       - name: Server - tests (if present)
-        working-directory: server
+        working-directory: RENTALCAR/server
         run: npm test --if-present
 
   docker_images:
@@ -57,15 +55,15 @@ jobs:
       - name: Build server image (no push)
         uses: docker/build-push-action@v6
         with:
-          context: ./server
-          file: ./server/Dockerfile
+          context: ./RENTALCAR/server
+          file: ./RENTALCAR/server/Dockerfile
           push: false
-          tags: carteh-server:ci
+          tags: rentalcar-server:ci
 
       - name: Build client image (no push)
         uses: docker/build-push-action@v6
         with:
-          context: ./client
-          file: ./client/Dockerfile
+          context: ./RENTALCAR/client
+          file: ./RENTALCAR/client/Dockerfile
           push: false
-          tags: carteh-client:ci
+          tags: rentalcar-client:ci
