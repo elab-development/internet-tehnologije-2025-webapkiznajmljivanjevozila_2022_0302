@@ -1,7 +1,7 @@
 services:
   mongo:
     image: mongo:7
-    container_name: carteh-mongo
+    container_name: carRental-mongo
     ports:
       - "27017:27017"
     volumes:
@@ -9,20 +9,20 @@ services:
 
   server:
     build: ./server
-    container_name: carteh-server
-
-    # Učitaj sve promenljive iz server/.env (NE COMMITUJEŠ taj fajl)
+    container_name: carRental-server
+    
     env_file:
       - ./server/.env
 
-    environment:
+    depends_on:
+      - mongo
      
     ports:
       - "3000:3000"
 
   client:
     build: ./client
-    container_name: carteh-client
+    container_name: carRental-client
     depends_on:
       - server
     ports:
