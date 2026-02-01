@@ -7,22 +7,46 @@ import { motion } from "motion/react";
 import CurrencyPicker from "./CurrencyPicker";
 
 const Navbar = () => {
-  const { setShowLogin, user, logout, isOwner, axios, setIsOwner } = useAppContext();
+  const { setShowLogin, user, logout, isOwner, axios, setIsOwner } =
+    useAppContext();
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
+  // ✅ Guest -> /login
+  // ✅ Logged-in user (not owner) -> change role -> becomes owner -> go to dashboard
+  // ✅ Owner -> dashboard
   const changeRole = async () => {
+    // 1️⃣ Guest → otvori LOGIN MODAL
+    if (!user) {
+      setShowLogin(true);
+      return;
+    }
+
+    // 2️⃣ Ako je već owner → dashboard
+    if (isOwner) {
+      navigate("/owner");
+      return;
+    }
+
+    // 3️⃣ Ulogovan user (nije owner) → menjamo rolu
     try {
       const { data } = await axios.post("/api/owner/change-role");
+
       if (data.success) {
         setIsOwner(true);
-        toast.success(data.message);
+        toast.success(data.message || "You are now an owner");
+        navigate("/owner");
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      // ako token nije validan → opet login modal
+      if (error?.response?.status === 401) {
+        setShowLogin(true);
+        return;
+      }
+      toast.error(error?.response?.data?.message || error.message);
     }
   };
 
@@ -36,7 +60,12 @@ const Navbar = () => {
       ${location.pathname === "/" ? "bg-light" : ""}`}
     >
       <Link to="/">
-        <motion.img whileHover={{ scale: 1.05 }} src={assets.logo} alt="logo" className="h-8" />
+        <motion.img
+          whileHover={{ scale: 1.05 }}
+          src={assets.logo}
+          alt="logo"
+          className="h-8"
+        />
       </Link>
 
       <div
@@ -59,7 +88,10 @@ const Navbar = () => {
         <CurrencyPicker />
 
         <div className="flex max-sm:flex-col items-start sm:items-center gap-6">
-          <button onClick={() => (isOwner ? navigate("/owner") : changeRole())} className="cursor-pointer">
+          <button
+            onClick={() => (isOwner ? navigate("/owner") : changeRole())}
+            className="cursor-pointer"
+          >
             {isOwner ? "Dashboard" : "List cars"}
           </button>
 
@@ -72,7 +104,11 @@ const Navbar = () => {
         </div>
       </div>
 
-      <button className="sm:hidden cursor-pointer" aria-label="Menu" onClick={() => setOpen(!open)}>
+      <button
+        className="sm:hidden cursor-pointer"
+        aria-label="Menu"
+        onClick={() => setOpen(!open)}
+      >
         <img src={open ? assets.close_icon : assets.menu_icon} alt="menu" />
       </button>
     </motion.div>

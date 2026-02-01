@@ -4,9 +4,13 @@ import { convertCurrency } from "../services/exchangeRateService.js";
 export const getCountries = async (req, res) => {
   try {
     const countries = await fetchCountries();
-    res.json({ success: true, countries });
+    return res.json({ success: true, countries });
   } catch (e) {
-    res.status(500).json({ success: false, message: "Failed to fetch countries" });
+    console.error("❌ getCountries:", e?.message || e);
+    return res.status(500).json({
+      success: false,
+      message: e?.message || "Failed to fetch countries",
+    });
   }
 };
 
@@ -22,7 +26,7 @@ export const convert = async (req, res) => {
     }
 
     const converted = await convertCurrency({ amount, from, to });
-    res.json({
+    return res.json({
       success: true,
       amount: Number(amount),
       from,
@@ -30,6 +34,10 @@ export const convert = async (req, res) => {
       converted,
     });
   } catch (e) {
-    res.status(500).json({ success: false, message: e.message || "Conversion failed" });
+    console.error("❌ convert:", e?.message || e);
+    return res.status(500).json({
+      success: false,
+      message: e?.message || "Conversion failed",
+    });
   }
 };
