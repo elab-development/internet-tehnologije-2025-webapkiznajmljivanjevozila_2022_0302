@@ -1,9 +1,17 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+axios.defaults.baseURL =
+  import.meta.env.VITE_BASE_URL || "http://localhost:3000";
 
 export const AppContext = createContext();
 
@@ -78,7 +86,11 @@ export const AppProvider = ({ children }) => {
       const set = new Set();
       list.forEach((c) => {
         (c.currencies || []).forEach((code) => {
-          if (typeof code === "string" && code.length >= 3 && code.length <= 4) {
+          if (
+            typeof code === "string" &&
+            code.length >= 3 &&
+            code.length <= 4
+          ) {
             set.add(code.toUpperCase());
           }
         });
@@ -89,7 +101,8 @@ export const AppProvider = ({ children }) => {
 
       if (currencyList.length > 0) {
         setCurrencies(currencyList);
-        if (!currencyList.includes(selectedCurrency)) setSelectedCurrency("EUR");
+        if (!currencyList.includes(selectedCurrency))
+          setSelectedCurrency("EUR");
       } else {
         setCurrencies(["EUR", "USD", "RSD"]);
       }
@@ -103,7 +116,11 @@ export const AppProvider = ({ children }) => {
   };
 
   // ✅ ExchangeRate → konverzija preko backend-a
-  const convertAmount = async (amount, from = BASE_PRICE_CURRENCY, to = selectedCurrency) => {
+  const convertAmount = async (
+    amount,
+    from = BASE_PRICE_CURRENCY,
+    to = selectedCurrency,
+  ) => {
     const a = Number(amount ?? 0);
     if (Number.isNaN(a)) return 0;
 
@@ -211,7 +228,7 @@ export const AppProvider = ({ children }) => {
       currencies,
       currenciesLoading,
       selectedCurrency,
-    ]
+    ],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

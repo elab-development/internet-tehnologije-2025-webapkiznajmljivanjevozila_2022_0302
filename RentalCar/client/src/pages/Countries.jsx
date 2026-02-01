@@ -13,7 +13,9 @@ const Countries = () => {
       const name = (c.name || "").toLowerCase();
       const cca2 = (c.cca2 || "").toLowerCase();
       const cca3 = (c.cca3 || "").toLowerCase();
-      return name.includes(query) || cca2.includes(query) || cca3.includes(query);
+      return (
+        name.includes(query) || cca2.includes(query) || cca3.includes(query)
+      );
     });
   }, [countries, q]);
 
@@ -21,7 +23,9 @@ const Countries = () => {
     <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-10 mb-16">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Countries & Currencies</h1>
+          <h1 className="text-2xl font-semibold text-gray-800">
+            Countries & Currencies
+          </h1>
           <p className="text-gray-500 text-sm">
             Powered by <span className="font-medium">RESTCountries API</span>
           </p>
@@ -46,7 +50,7 @@ const Countries = () => {
             >
               <div className="flex items-center gap-3">
                 <img
-                  src={c.flag}
+                  src={c.flag || "https://via.placeholder.com/40x28?text=+"}
                   alt={c.name}
                   className="w-10 h-7 object-cover rounded border"
                 />
