@@ -16,13 +16,11 @@ const bookingSchema = new mongoose.Schema(
       default: "pending",
     },
 
-    // tvoj postojeći price ostaje (da ne pukne frontend)
     price: { type: Number, required: true },
 
-    // ✅ DODATO: veza ka Payment modelu (1 payment po booking-u)
     payment: { type: ObjectId, ref: "Payment", default: null },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Booking = mongoose.model("Booking", bookingSchema);

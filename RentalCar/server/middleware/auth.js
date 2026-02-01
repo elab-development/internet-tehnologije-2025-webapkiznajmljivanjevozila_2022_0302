@@ -6,53 +6,48 @@ export const protect = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      return res.status(401).json({
-        success: false,
-        message: "not authorized",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "not authorized" });
     }
 
-    // ✅ podržava i "Bearer <token>" i "<token>"
+    // ✅ Podržava i:
+    // - "Bearer <token>" (Swagger, browser)
+    // - "<token>" (ako si ranije slao bez Bearer-a)
     const token = authHeader.startsWith("Bearer ")
       ? authHeader.split(" ")[1]
       : authHeader;
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "not authorized",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "not authorized" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ podržava payload kao string ili objekt (id/userId/_id)
+    // Kod tebe payload je userId string (payload = userId)
     const userId =
-      typeof decoded === "string"
-        ? decoded
-        : decoded?.id || decoded?.userId || decoded?._id;
+      typeof decoded === "string" ? decoded : decoded?.id || decoded?._id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "not authorized",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "not authorized" });
     }
 
     const user = await User.findById(userId).select("-password");
+
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "not authorized",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "not authorized" });
     }
 
     req.user = user;
     next();
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "not authorized",
-    });
+    console.error("protect error:", error.message);
+    return res.status(401).json({ success: false, message: "not authorized" });
   }
 };
