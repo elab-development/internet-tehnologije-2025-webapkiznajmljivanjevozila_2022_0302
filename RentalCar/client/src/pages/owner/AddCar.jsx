@@ -147,12 +147,13 @@ const AddCar = () => {
               className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
             >
               <option value="">Select a category</option>
-              <option value="Sedan">Sedan</option>
+              <option value="Coupe">Coupe</option>
               <option value="SUV">SUV</option>
               <option value="Hatchback">Hatchback</option>
+              <option value="Sedan">Sedan</option>
+              <option value="Convertible">Convertible</option>
               <option value="Van">Van</option>
-              <option value="Electric">Electric</option>
-              <option value="Luxury">Luxury</option>
+              <option value="Grand Tourer">Grand Tourer</option>
             </select>
           </div>
         </div>
