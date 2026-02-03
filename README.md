@@ -20,7 +20,6 @@ Za dokumentovanje REST API-ja korišćen je alat **Swagger UI**, koji omogućava
 
 Nakon pokretanja backend servera, Swagger UI je dostupan na sledećoj adresi:
 
-
 http://localhost:3000/api-docs
 
 ## 🔐 Autorizacija (JWT)
@@ -31,7 +30,6 @@ Za pristup zaštićenim rutama:
 2. Kopirati dobijeni JWT token
 3. U Swagger UI kliknuti na dugme **Authorize**
 4. Uneti token u sledećem formatu:
-
 
 Bearer <JWT_TOKEN>
 
@@ -74,7 +72,6 @@ Swagger dokumentacija obuhvata sledeće grupe API operacija:
 - GitHub Actions (CI/CD)
 - React (Vite)
 
-
 ---
 
 ## ▶️ Pokretanje aplikacije (Docker – lokalno)
@@ -85,8 +82,8 @@ Za pokretanje kompletne aplikacije (backend + frontend + baza) potrebno je imati
 docker compose up --build
 ```
 
-
 Nakon pokretanja:
+
 - Backend API: http://localhost:3000
 - Swagger UI: http://localhost:3000/api-docs
 - Frontend aplikacija: http://localhost:5173
@@ -102,8 +99,24 @@ Konfiguracija se vrši putem environment varijabli, bez hard-kodovanih vrednosti
 - Frontend koristi `VITE_BASE_URL` za dinamičko povezivanje sa backend servisom
 
 ---
+
+## 📊 Vizualizacija podataka
+
+Na dashboard stranici implementirana je vizualizacija podataka korišćenjem
+Google Charts API-ja, koja omogućava grafički prikaz statistike sistema
+(npr. broj rezervacija, statusi, agregirani podaci).
+
+---
+
+## 🌐 Produkciona verzija (Cloud)
+
+Aplikacija je bila deploy-ovana na cloud platformu u okviru projekta.
+Link za pristup aplikaciji na cloud-u:
+https://rentalcar-frontend-efut.onrender.com/
+
+---
+
 ## ✅ Napomena
 
 Swagger specifikacija se automatski generiše na osnovu anotacija
 u `routes/*.js` fajlovima, što omogućava jednostavno održavanje i proširivanje API dokumentacije.
-
