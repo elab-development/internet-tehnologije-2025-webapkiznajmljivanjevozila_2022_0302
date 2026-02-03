@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 import toast from "react-hot-toast";
 
 const BookingDocuments = () => {
@@ -12,7 +12,7 @@ const BookingDocuments = () => {
 
   const carFromContext = useMemo(
     () => (Array.isArray(cars) ? cars : []).find((c) => c?._id === id) || null,
-    [cars, id]
+    [cars, id],
   );
 
   const [car, setCar] = useState(carFromContext);
@@ -25,7 +25,6 @@ const BookingDocuments = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ✅ Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("CARD"); // CARD | CASH
 
@@ -35,7 +34,6 @@ const BookingDocuments = () => {
     setCar(carFromContext);
   }, [carFromContext]);
 
-  // ✅ helper: upload jednog dokumenta
   const uploadDoc = async (file, documentType) => {
     const formData = new FormData();
     formData.append("file", file); // server očekuje field name "file"
@@ -49,7 +47,6 @@ const BookingDocuments = () => {
     return data.document;
   };
 
-  // ✅ 1) submit forme: upload dokumenata, pa otvori payment modal
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -61,15 +58,18 @@ const BookingDocuments = () => {
     }
 
     if (!passportPdf || !licensePdf) {
-      setError("Please upload required documents: Passport and Driver’s License.");
+      setError(
+        "Please upload required documents: Passport and Driver’s License.",
+      );
       return;
     }
 
     try {
       setIsSubmitting(true);
 
-      // pending booking info iz localStorage
-      const pending = JSON.parse(localStorage.getItem("pendingBooking") || "null");
+      const pending = JSON.parse(
+        localStorage.getItem("pendingBooking") || "null",
+      );
 
       if (!pending || pending.car !== id) {
         toast.error("Missing booking data. Please select dates again.");
@@ -77,14 +77,12 @@ const BookingDocuments = () => {
         return;
       }
 
-      // Upload dokumenata (ID_CARD optional + PASSPORT + DRIVING_LICENSE required)
       if (idCardPdf) {
         await uploadDoc(idCardPdf, "ID_CARD");
       }
       await uploadDoc(passportPdf, "PASSPORT");
       await uploadDoc(licensePdf, "DRIVING_LICENSE");
 
-      // ✅ nakon uspešnog upload-a dokumenata → otvori payment modal
       setShowPaymentModal(true);
     } catch (err) {
       toast.error(err?.response?.data?.message || err.message);
@@ -93,12 +91,13 @@ const BookingDocuments = () => {
     }
   };
 
-  // ✅ 2) final confirm iz modala: kreiraj booking + payment
   const handleConfirmPayment = async () => {
     try {
       setIsSubmitting(true);
 
-      const pending = JSON.parse(localStorage.getItem("pendingBooking") || "null");
+      const pending = JSON.parse(
+        localStorage.getItem("pendingBooking") || "null",
+      );
       if (!pending || pending.car !== id) {
         toast.error("Missing booking data. Please select dates again.");
         setShowPaymentModal(false);
@@ -106,7 +105,6 @@ const BookingDocuments = () => {
         return;
       }
 
-      // 3) Create booking (tek sad!)
       const bookingRes = await axios.post("/api/booking/create", pending);
       const bookingData = bookingRes?.data;
 
@@ -123,7 +121,6 @@ const BookingDocuments = () => {
         return;
       }
 
-      // 4) Amount: booking.price (iz backend createBooking)
       const amount = booking?.price ?? bookingData?.price ?? pending?.price;
 
       if (amount == null) {
@@ -131,11 +128,10 @@ const BookingDocuments = () => {
         return;
       }
 
-      // 5) Create payment (CARD=PAID, CASH=PENDING u backendu)
       const payRes = await axios.post("/api/payment", {
         bookingId,
         amount,
-        method: paymentMethod, // ✅ "CARD" | "CASH"
+        method: paymentMethod,
         currency: "EUR",
       });
 
@@ -144,7 +140,6 @@ const BookingDocuments = () => {
         return;
       }
 
-      // 6) Cleanup + redirect
       toast.success("Booking completed!");
       localStorage.removeItem("pendingBooking");
       setShowPaymentModal(false);
@@ -195,7 +190,8 @@ const BookingDocuments = () => {
           <hr className="border-borderColor my-6" />
 
           <p className="text-gray-500">
-            Please upload your documents in PDF format to proceed with the booking.
+            Please upload your documents in PDF format to proceed with the
+            booking.
           </p>
         </div>
 
@@ -208,7 +204,10 @@ const BookingDocuments = () => {
 
           {/* ID card optional */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="id-card" className="flex items-center justify-between">
+            <label
+              htmlFor="id-card"
+              className="flex items-center justify-between"
+            >
               <span>National ID Card (PDF)</span>
               <span className="text-xs text-gray-400">Optional</span>
             </label>
@@ -221,13 +220,18 @@ const BookingDocuments = () => {
               disabled={isSubmitting}
             />
             {idCardPdf && (
-              <p className="text-xs text-gray-400">Selected: {idCardPdf.name}</p>
+              <p className="text-xs text-gray-400">
+                Selected: {idCardPdf.name}
+              </p>
             )}
           </div>
 
           {/* Passport required */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="passport" className="flex items-center justify-between">
+            <label
+              htmlFor="passport"
+              className="flex items-center justify-between"
+            >
               <span>Passport (PDF)</span>
               <span className="text-xs text-red-500">Required</span>
             </label>
@@ -241,13 +245,18 @@ const BookingDocuments = () => {
               disabled={isSubmitting}
             />
             {passportPdf && (
-              <p className="text-xs text-gray-400">Selected: {passportPdf.name}</p>
+              <p className="text-xs text-gray-400">
+                Selected: {passportPdf.name}
+              </p>
             )}
           </div>
 
           {/* Driver's license required */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="license" className="flex items-center justify-between">
+            <label
+              htmlFor="license"
+              className="flex items-center justify-between"
+            >
               <span>Driver’s License (PDF)</span>
               <span className="text-xs text-red-500">Required</span>
             </label>
@@ -261,7 +270,9 @@ const BookingDocuments = () => {
               disabled={isSubmitting}
             />
             {licensePdf && (
-              <p className="text-xs text-gray-400">Selected: {licensePdf.name}</p>
+              <p className="text-xs text-gray-400">
+                Selected: {licensePdf.name}
+              </p>
             )}
           </div>
 
@@ -280,7 +291,9 @@ const BookingDocuments = () => {
             {isSubmitting ? "Processing..." : "Book Now"}
           </button>
 
-          <p className="text-center text-sm">No credit card required to reserve</p>
+          <p className="text-center text-sm">
+            No credit card required to reserve
+          </p>
         </form>
       </div>
 

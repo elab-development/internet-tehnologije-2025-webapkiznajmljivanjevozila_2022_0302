@@ -1,4 +1,3 @@
-// server/middleware/validate.js
 export const validateBody = (schema) => (req, res, next) => {
   try {
     const result = schema.safeParse(req.body);
@@ -14,7 +13,6 @@ export const validateBody = (schema) => (req, res, next) => {
       });
     }
 
-    // ✅ upišemo "validated" data nazad (sanitized)
     req.body = result.data;
 
     return next();

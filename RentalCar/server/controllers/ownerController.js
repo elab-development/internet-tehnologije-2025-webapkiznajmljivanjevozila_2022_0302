@@ -33,14 +33,18 @@ export const addCar = async (req, res) => {
     try {
       car = JSON.parse(req.body.carData);
     } catch {
-      return res.status(400).json({ success: false, message: "Invalid carData JSON" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid carData JSON" });
     }
 
     if (!req.file) {
-      return res.status(400).json({ success: false, message: "Image required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Image required" });
     }
 
-    // upload na ImageKit (memoryStorage => buffer)
+    // upload na ImageKit
     const uploadRes = await imagekit.upload({
       file: req.file.buffer.toString("base64"),
       fileName: `car_${Date.now()}.png`,
@@ -50,7 +54,11 @@ export const addCar = async (req, res) => {
     // optimizovana slika
     const optimizedImageUrl = imagekit.url({
       src: uploadRes.url,
-      transformation: [{ width: "1280" }, { quality: "auto" }, { format: "webp" }],
+      transformation: [
+        { width: "1280" },
+        { quality: "auto" },
+        { format: "webp" },
+      ],
     });
 
     await Car.create({
@@ -89,7 +97,6 @@ export const toggleCarAvailability = async (req, res) => {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
 
-    // Checking if car belongs to the user
     if (car.owner.toString() !== _id.toString()) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
@@ -111,7 +118,8 @@ export const deleteCar = async (req, res) => {
     const { carId } = req.body;
 
     const car = await Car.findById(carId);
-    if (!car) return res.status(404).json({ success: false, message: "Car not found" });
+    if (!car)
+      return res.status(404).json({ success: false, message: "Car not found" });
 
     if (car.owner.toString() !== _id.toString()) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
@@ -119,7 +127,7 @@ export const deleteCar = async (req, res) => {
 
     await Booking.updateMany(
       { owner: _id, car: carId, status: { $ne: "canceled" } },
-      { $set: { status: "canceled" } }
+      { $set: { status: "canceled" } },
     );
 
     await Car.findByIdAndDelete(carId);
@@ -134,7 +142,7 @@ export const deleteCar = async (req, res) => {
   }
 };
 
-// API to get Dashboard Data (KPI + recent + monthly revenue REAL)
+// API to get Dashboard Data
 export const getDashboardData = async (req, res) => {
   try {
     const { _id, role } = req.user;
@@ -158,7 +166,6 @@ export const getDashboardData = async (req, res) => {
       status: "confirmed",
     });
 
-    // ✅ pravi "monthly revenue" (tekući mesec)
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -192,7 +199,6 @@ export const getDashboardData = async (req, res) => {
   }
 };
 
-// ✅ API to update user image (multer.memoryStorage)
 export const updateUserImage = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -212,7 +218,11 @@ export const updateUserImage = async (req, res) => {
 
     const optimizedImageUrl = imagekit.url({
       src: uploadRes.url,
-      transformation: [{ width: "400" }, { quality: "auto" }, { format: "webp" }],
+      transformation: [
+        { width: "400" },
+        { quality: "auto" },
+        { format: "webp" },
+      ],
     });
 
     await User.findByIdAndUpdate(_id, { image: optimizedImageUrl });
@@ -231,8 +241,6 @@ export const updateUserImage = async (req, res) => {
   }
 };
 
-// ✅ NEW: API for charts and advanced dashboard stats
-// GET /api/owner/stats?year=2026
 export const getOwnerStats = async (req, res) => {
   try {
     const { _id, role } = req.user;
@@ -246,14 +254,12 @@ export const getOwnerStats = async (req, res) => {
 
     const ownerId = new mongoose.Types.ObjectId(_id);
 
-    // 1) bookings by month (count)
     const bookingsByMonth = await Booking.aggregate([
       { $match: { owner: ownerId, createdAt: { $gte: start, $lt: end } } },
       { $group: { _id: { m: { $month: "$createdAt" } }, count: { $sum: 1 } } },
       { $sort: { "_id.m": 1 } },
     ]);
 
-    // 2) revenue by month (confirmed)
     const revenueByMonth = await Booking.aggregate([
       {
         $match: {
@@ -262,18 +268,21 @@ export const getOwnerStats = async (req, res) => {
           createdAt: { $gte: start, $lt: end },
         },
       },
-      { $group: { _id: { m: { $month: "$createdAt" } }, revenue: { $sum: "$price" } } },
+      {
+        $group: {
+          _id: { m: { $month: "$createdAt" } },
+          revenue: { $sum: "$price" },
+        },
+      },
       { $sort: { "_id.m": 1 } },
     ]);
 
-    // 3) status breakdown
     const statusBreakdown = await Booking.aggregate([
       { $match: { owner: ownerId, createdAt: { $gte: start, $lt: end } } },
       { $group: { _id: "$status", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
     ]);
 
-    // 4) top cars by booking count
     const topCars = await Booking.aggregate([
       { $match: { owner: ownerId, createdAt: { $gte: start, $lt: end } } },
       { $group: { _id: "$car", count: { $sum: 1 } } },
@@ -309,7 +318,10 @@ export const getOwnerStats = async (req, res) => {
         year,
         bookingsMonthly: fill12(bookingsByMonth, "count"),
         revenueMonthly: fill12(revenueByMonth, "revenue"),
-        statusBreakdown: statusBreakdown.map((s) => ({ status: s._id, count: s.count })),
+        statusBreakdown: statusBreakdown.map((s) => ({
+          status: s._id,
+          count: s.count,
+        })),
         topCars,
       },
     });

@@ -2,30 +2,25 @@ import Booking from "../models/Booking.js";
 import Car from "../models/Car.js";
 import Document from "../models/Document.js";
 
-/**
- * IDOR zaštita za Booking:
- * Dozvoljeno:
- *  - korisnik koji je napravio booking (booking.user)
- *  - owner automobila tog booking-a (car.owner)
- *  - admin (ako postoji)
- */
 export const canAccessBooking = async (req, res, next) => {
   try {
     const userId = req.user?._id?.toString();
     const role = req.user?.role;
 
     const bookingId =
-      req.params.id ||
-      req.params.bookingId ||
-      req.body.bookingId;
+      req.params.id || req.params.bookingId || req.body.bookingId;
 
     if (!bookingId) {
-      return res.status(400).json({ success: false, message: "bookingId is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "bookingId is required" });
     }
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
     }
 
     if (role === "admin") {
@@ -33,49 +28,47 @@ export const canAccessBooking = async (req, res, next) => {
       return next();
     }
 
-    // user who created booking
     if (booking.user?.toString() === userId) {
       req.booking = booking;
       return next();
     }
 
-    // owner of the car in booking
     const car = await Car.findById(booking.car);
     if (car && car.owner?.toString() === userId) {
       req.booking = booking;
       return next();
     }
 
-    return res.status(403).json({ success: false, message: "Forbidden (IDOR protection)" });
+    return res
+      .status(403)
+      .json({ success: false, message: "Forbidden (IDOR protection)" });
   } catch (err) {
     console.error("canAccessBooking:", err);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
-/**
- * IDOR zaštita za Document:
- * Dozvoljeno:
- *  - vlasnik dokumenta (document.user)
- *  - admin (ako postoji)
- */
 export const canAccessDocument = async (req, res, next) => {
   try {
     const userId = req.user?._id?.toString();
     const role = req.user?.role;
 
     const documentId =
-      req.params.id ||
-      req.params.documentId ||
-      req.body.documentId;
+      req.params.id || req.params.documentId || req.body.documentId;
 
     if (!documentId) {
-      return res.status(400).json({ success: false, message: "documentId is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "documentId is required" });
     }
 
     const document = await Document.findById(documentId);
     if (!document) {
-      return res.status(404).json({ success: false, message: "Document not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Document not found" });
     }
 
     if (role === "admin") {
@@ -88,9 +81,13 @@ export const canAccessDocument = async (req, res, next) => {
       return next();
     }
 
-    return res.status(403).json({ success: false, message: "Forbidden (IDOR protection)" });
+    return res
+      .status(403)
+      .json({ success: false, message: "Forbidden (IDOR protection)" });
   } catch (err) {
     console.error("canAccessDocument:", err);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };

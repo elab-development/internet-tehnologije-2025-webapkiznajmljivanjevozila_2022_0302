@@ -1,38 +1,36 @@
 import React, { useState } from "react";
 import { assets, ownerMenuLinks } from "../../assets/assets";
 import { useLocation, NavLink } from "react-router-dom";
-import { useAppContext } from "../../context/AppContext";
+import { useAppContext } from "../../context/useAppContext.js";
 import toast from "react-hot-toast";
 
 const Sidebar = () => {
-
-  const {user, axios, fetchUser} = useAppContext()
+  const { user, axios, fetchUser } = useAppContext();
   const location = useLocation();
   const [image, setImage] = useState(null);
-//com
+
   const updateImage = async () => {
-  try {
-    if (!image) return toast.error("Select an image first");
+    try {
+      if (!image) return toast.error("Select an image first");
 
-    const formData = new FormData();
-    formData.append("image", image);
+      const formData = new FormData();
+      formData.append("image", image);
 
-    const { data } = await axios.post("/api/owner/update-image", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+      const { data } = await axios.post("/api/owner/update-image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-    if (data.success) {
-      fetchUser();
-      toast.success(data.message);
-      setImage(null);
-    } else {
-      toast.error(data.message);
+      if (data.success) {
+        fetchUser();
+        toast.success(data.message);
+        setImage(null);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error.message);
     }
-  } catch (error) {
-    toast.error(error?.response?.data?.message || error.message);
-  }
-};
-
+  };
 
   return (
     <div className="relative min-h-screen md:flex flex-col items-center pt-8 max-w-13 md:max-w-60 w-full border-r border-borderColor text-sm">
@@ -75,9 +73,7 @@ const Sidebar = () => {
       </div>
 
       {/* NAME */}
-      <p className="mt-2 text-base max-md:hidden">
-        {user?.name || "Owner"}
-      </p>
+      <p className="mt-2 text-base max-md:hidden">{user?.name || "Owner"}</p>
 
       {/* MENU */}
       <div className="w-full">

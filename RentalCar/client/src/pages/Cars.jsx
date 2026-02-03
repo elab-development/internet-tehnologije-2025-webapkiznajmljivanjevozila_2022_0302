@@ -5,11 +5,10 @@ import toast from "react-hot-toast";
 import Title from "../components/Title";
 import CarCard from "../components/CarCard";
 import { assets } from "../assets/assets";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 import { motion } from "motion/react";
 
 const Cars = () => {
-  // ✅ dodali smo selectedCurrency, BASE_PRICE_CURRENCY, convertAmount
   const { axios, selectedCurrency, BASE_PRICE_CURRENCY, convertAmount } =
     useAppContext();
 
@@ -24,10 +23,8 @@ const Cars = () => {
   const isSearchData =
     pickupLocation.trim() && pickupDate.trim() && returnDate.trim();
 
-  // All cars (for /cars without search params)
   const [cars, setCars] = useState([]);
 
-  // Cars returned from availability endpoint
   const [availableCars, setAvailableCars] = useState([]);
 
   // Right-side filters
@@ -49,7 +46,6 @@ const Cars = () => {
     "300+": false,
   });
 
-  // ✅ NOVO: labels u izabranoj valuti (samo prikaz)
   const [priceRangeLabels, setPriceRangeLabels] = useState({
     "0-150": "$0 to $150",
     "150-220": "$150 to $220",
@@ -72,10 +68,8 @@ const Cars = () => {
     setPage(1);
   };
 
-  // ✅ Fetch all cars for /cars page (no search params)
   const fetchCars = async () => {
     try {
-      // TODO: ako je tvoja ruta drugačija, promeni ovde:
       const { data } = await axios.get("/api/cars");
 
       if (data.success) {
@@ -113,7 +107,6 @@ const Cars = () => {
     }
   };
 
-  // ✅ When query params exist -> availability search; otherwise load all cars
   useEffect(() => {
     setPage(1);
 
@@ -126,37 +119,37 @@ const Cars = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickupLocation, pickupDate, returnDate]);
 
-  // ✅ Base list depending on mode
   const baseCars = isSearchData ? availableCars : cars;
 
-  // ✅ NOVO: konverzija price range labela kad se promeni valuta
   useEffect(() => {
     let alive = true;
 
     const fmt0 = (n) => `${Number(n).toFixed(0)} ${selectedCurrency}`;
 
     const run = async () => {
-      // ako nema convertAmount ili valuta nije postavljena, ostavi fallback
       if (!convertAmount || !selectedCurrency) return;
 
       setPriceLabelLoading(true);
       try {
-        // granice su u baznoj valuti (npr. EUR)
-        const a0 = await convertAmount(0, BASE_PRICE_CURRENCY, selectedCurrency);
+        const a0 = await convertAmount(
+          0,
+          BASE_PRICE_CURRENCY,
+          selectedCurrency,
+        );
         const a150 = await convertAmount(
           150,
           BASE_PRICE_CURRENCY,
-          selectedCurrency
+          selectedCurrency,
         );
         const a220 = await convertAmount(
           220,
           BASE_PRICE_CURRENCY,
-          selectedCurrency
+          selectedCurrency,
         );
         const a300 = await convertAmount(
           300,
           BASE_PRICE_CURRENCY,
-          selectedCurrency
+          selectedCurrency,
         );
 
         const next = {
@@ -210,8 +203,8 @@ const Cars = () => {
         if (!types[cat]) return false;
       }
 
-      // Price filter (NE MENJAMO LOGIKU)
-      // Filtrira se u baznoj valuti jer je car.pricePerDay u toj valuti.
+      // Price filter
+
       const anyPriceChecked = Object.values(priceRanges).some(Boolean);
       if (anyPriceChecked) {
         const price = Number(car.pricePerDay ?? 0);
@@ -231,11 +224,11 @@ const Cars = () => {
     // Sort
     if (sortBy === "highToLow") {
       list = [...list].sort(
-        (a, b) => Number(b.pricePerDay ?? 0) - Number(a.pricePerDay ?? 0)
+        (a, b) => Number(b.pricePerDay ?? 0) - Number(a.pricePerDay ?? 0),
       );
     } else if (sortBy === "lowToHigh") {
       list = [...list].sort(
-        (a, b) => Number(a.pricePerDay ?? 0) - Number(b.pricePerDay ?? 0)
+        (a, b) => Number(a.pricePerDay ?? 0) - Number(b.pricePerDay ?? 0),
       );
     }
 
@@ -244,7 +237,7 @@ const Cars = () => {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE)
+    Math.ceil(filteredAndSorted.length / ITEMS_PER_PAGE),
   );
   const safePage = Math.min(page, totalPages);
 
@@ -352,7 +345,7 @@ const Cars = () => {
                     >
                       {p}
                     </button>
-                  )
+                  ),
                 )}
 
                 <button
@@ -442,7 +435,8 @@ const Cars = () => {
 
               {/* ✅ mali hint da je u valuti */}
               <p className="text-sm text-gray-500 mb-4">
-                Showing in <span className="font-medium">{selectedCurrency}</span>
+                Showing in{" "}
+                <span className="font-medium">{selectedCurrency}</span>
                 {priceLabelLoading ? " (converting...)" : ""}
               </p>
 

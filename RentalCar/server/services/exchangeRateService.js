@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
-const cache = new Map(); // key = base, value = { ts, rates }
+const cache = new Map();
 
 async function getRates(base) {
   const now = Date.now();
@@ -9,8 +9,6 @@ async function getRates(base) {
 
   if (entry && now - entry.ts < CACHE_TTL_MS) return entry.rates;
 
-  // ExchangeRate API (bez ključa varijanta):
-  // https://open.er-api.com/v6/latest/USD
   const url = `https://open.er-api.com/v6/latest/${base}`;
   const { data } = await axios.get(url, { timeout: 10000 });
 

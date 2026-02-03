@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 
 export default function useConvertedPrice(amount, from) {
   const { convertAmount, selectedCurrency, BASE_PRICE_CURRENCY } = useAppContext();

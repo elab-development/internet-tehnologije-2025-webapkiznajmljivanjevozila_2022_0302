@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { dummyMyBookingsData, assets } from "../assets/assets";
 import Title from "../components/Title";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 import toast from "react-hot-toast";
 import { motion } from "motion/react";
 
@@ -24,7 +24,13 @@ const MyBookings = () => {
   };
 
   useEffect(() => {
-    user && fetchMyBookings();
+    if (!user) return;
+
+    const run = async () => {
+      await fetchMyBookings();
+    };
+
+    run();
   }, [user]);
 
   const formatDate = (d) => {
@@ -36,7 +42,6 @@ const MyBookings = () => {
   };
 
   const getPrice = (booking) => {
-    // probaj više naziva koji se često koriste u dummy data
     const p =
       booking?.price ??
       booking?.totalPrice ??
@@ -45,7 +50,6 @@ const MyBookings = () => {
       booking?.amount ??
       booking?.total;
 
-    // ako je undefined/null -> 0
     return Number(p ?? 0);
   };
 

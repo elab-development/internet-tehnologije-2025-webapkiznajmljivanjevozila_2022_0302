@@ -87,7 +87,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// Get User data using Token (JWT)
+// Get User data using Token
 export const getUserData = async (req, res) => {
   try {
     const { user } = req;
@@ -103,15 +103,15 @@ export const getUserData = async (req, res) => {
       message: error.message,
     });
   }
-}
+};
 
 // Get All Cars for the Frontend
 export const getCars = async (req, res) => {
   try {
-    const cars = await Car.find({isAvailable: true})
-    res.json({success: true, cars})
+    const cars = await Car.find({ isAvailable: true });
+    res.json({ success: true, cars });
   } catch (error) {
     console.log(error.message);
-    res.json({success: false, message: error.message})
+    res.json({ success: false, message: error.message });
   }
-}
+};
