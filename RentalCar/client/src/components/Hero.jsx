@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { assets, cityList } from "../assets/assets";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 import { motion } from "motion/react";
 
 const Hero = () => {

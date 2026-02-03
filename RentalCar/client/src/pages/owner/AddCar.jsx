@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { assets } from "../../assets/assets";
 import Title from "../../components/owner/Title";
-import { useAppContext } from "../../context/AppContext";
+import { useAppContext } from "../../context/useAppContext.js";
 import toast from "react-hot-toast";
 
 const AddCar = () => {
-
-  const {axios, currency} = useAppContext()
+  const { axios, currency } = useAppContext();
 
   const [image, setImage] = useState(null);
 
@@ -23,23 +22,23 @@ const AddCar = () => {
     description: "",
   });
 
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
-    if(isLoading) return null
+    if (isLoading) return null;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const formData = new FormData()
-      formData.append('image',image)
-      formData.append('carData',JSON.stringify(car))
+      const formData = new FormData();
+      formData.append("image", image);
+      formData.append("carData", JSON.stringify(car));
 
-      const {data} = await axios.post('/api/owner/add-car', formData)
+      const { data } = await axios.post("/api/owner/add-car", formData);
 
-      if(data.success){
-        toast.success(data.message)
-        setImage(null)
+      if (data.success) {
+        toast.success(data.message);
+        setImage(null);
         setCar({
           brand: "",
           model: "",
@@ -51,16 +50,16 @@ const AddCar = () => {
           seating_capacity: 0,
           location: "",
           description: "",
-        })
-      }else{
-        toast.error(data.message)
+        });
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message)
-    }finally{
-      setIsLoading(false)
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="px-4 py-10 md:px-10 flex-1">
@@ -150,7 +149,10 @@ const AddCar = () => {
               <option value="">Select a category</option>
               <option value="Sedan">Sedan</option>
               <option value="SUV">SUV</option>
+              <option value="Hatchback">Hatchback</option>
               <option value="Van">Van</option>
+              <option value="Electric">Electric</option>
+              <option value="Luxury">Luxury</option>
             </select>
           </div>
         </div>
@@ -208,10 +210,15 @@ const AddCar = () => {
             className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
           >
             <option value="">Select a location</option>
+
             <option value="New York">New York</option>
             <option value="Los Angeles">Los Angeles</option>
             <option value="Houston">Houston</option>
             <option value="Chicago">Chicago</option>
+
+            <option value="Miami">Miami</option>
+            <option value="San Francisco">San Francisco</option>
+            <option value="Las Vegas">Las Vegas</option>
           </select>
         </div>
         {/* Car Description */}
@@ -228,7 +235,7 @@ const AddCar = () => {
         </div>
         <button className="flex items-center gap-2 px-4 py-2.5 mt-4 bg-primary text-white rounded-md font-medium w-max cursor-pointer">
           <img src={assets.tick_icon} alt="" />
-          {isLoading ? 'Listing...' : 'List Your Car'}
+          {isLoading ? "Listing..." : "List Your Car"}
         </button>
       </form>
     </div>

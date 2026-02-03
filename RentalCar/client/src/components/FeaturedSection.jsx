@@ -3,17 +3,15 @@ import Title from "./Title";
 import { assets, dummyCarData } from "../assets/assets";
 import CarCard from "./CarCard";
 import { useNavigate } from "react-router-dom";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 import { motion } from "motion/react";
 
 const FeaturedSection = () => {
   const navigate = useNavigate();
   const { cars } = useAppContext();
 
-  // ✅ uzmi rezervisane aute iz localStorage
   const bookedCars = JSON.parse(localStorage.getItem("bookedCars")) || [];
 
-  // ✅ filtriraj: izbaci rezervisane
   const availableCars = dummyCarData.filter(
     (car) => !bookedCars.includes(car._id),
   );

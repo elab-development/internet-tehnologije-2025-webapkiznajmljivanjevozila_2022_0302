@@ -6,7 +6,7 @@ const paymentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Booking",
       required: true,
-      unique: true, // 1 payment po booking-u (kao na dijagramu)
+      unique: true,
     },
 
     amount: { type: Number, required: true, min: 0 },
@@ -23,7 +23,7 @@ const paymentSchema = new mongoose.Schema(
       default: "PAID",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Payment", paymentSchema);

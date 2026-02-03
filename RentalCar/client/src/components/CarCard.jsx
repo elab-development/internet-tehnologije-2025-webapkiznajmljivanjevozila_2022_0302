@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { assets } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import useConvertedPrice from "../hooks/useConvertedPrice";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 import { findCountryByLocation } from "../utils/countryUtils";
 import CountryBadge from "./CountryBadge";
 
@@ -10,11 +10,14 @@ const CarCard = ({ car }) => {
   const navigate = useNavigate();
   const { selectedCurrency, countries } = useAppContext();
 
-  // ✅ ExchangeRate API prikaz
-  const { value: convertedPrice, loading } = useConvertedPrice(car?.pricePerDay);
+  const { value: convertedPrice, loading } = useConvertedPrice(
+    car?.pricePerDay,
+  );
 
-  // ✅ RESTCountries prikaz (zastava / država)
-  const country = useMemo(() => findCountryByLocation(countries, car?.location), [countries, car?.location]);
+  const country = useMemo(
+    () => findCountryByLocation(countries, car?.location),
+    [countries, car?.location],
+  );
 
   return (
     <div
@@ -64,7 +67,11 @@ const CarCard = ({ car }) => {
           </div>
 
           <div className="flex items-center text-sm text-muted-foreground">
-            <img src={assets.fuel_icon || assets.fule_icon} alt="" className="h-4 mr-2" />
+            <img
+              src={assets.fuel_icon || assets.fule_icon}
+              alt=""
+              className="h-4 mr-2"
+            />
             <span>{car.fuel_type}</span>
           </div>
 

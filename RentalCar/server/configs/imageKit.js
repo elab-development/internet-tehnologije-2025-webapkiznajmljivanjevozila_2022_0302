@@ -6,7 +6,7 @@ const {
   IMAGEKIT_URL_ENDPOINT,
 } = process.env;
 
-// docker compose up --buildImageKit je opcionalan: ako env ne postoji, ne ruši server
+
 let imagekit = null;
 
 if (IMAGEKIT_PUBLIC_KEY && IMAGEKIT_PRIVATE_KEY && IMAGEKIT_URL_ENDPOINT) {

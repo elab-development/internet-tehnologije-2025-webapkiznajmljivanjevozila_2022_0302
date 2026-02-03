@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { assets } from "../assets/assets";
 import Loader from "../components/Loader";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 import toast from "react-hot-toast";
 import { motion } from "motion/react";
 import useConvertedPrice from "../hooks/useConvertedPrice";
@@ -22,24 +22,25 @@ const CarDetails = () => {
   } = useAppContext();
 
   const navigate = useNavigate();
-  const [car, setCar] = useState(null);
+
+  const car = useMemo(() => {
+    if (!Array.isArray(cars)) return null;
+    return cars.find((c) => c?._id === id) || null;
+  }, [cars, id]);
 
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
-  const { value: convertedPrice, loading } = useConvertedPrice(car?.pricePerDay);
+  const { value: convertedPrice, loading } = useConvertedPrice(
+    car?.pricePerDay,
+  );
 
   useEffect(() => {
     setPickupDate("");
     setReturnDate("");
   }, [id, setPickupDate, setReturnDate]);
 
-  useEffect(() => {
-    const list = Array.isArray(cars) ? cars : [];
-    setCar(list.find((c) => c?._id === id) || null);
-  }, [cars, id]);
-
   const country = useMemo(
     () => findCountryByLocation(countries, car?.location),
-    [countries, car?.location]
+    [countries, car?.location],
   );
 
   const handleSubmit = async (e) => {
@@ -56,7 +57,7 @@ const CarDetails = () => {
 
     localStorage.setItem(
       "pendingBooking",
-      JSON.stringify({ car: id, pickupDate, returnDate })
+      JSON.stringify({ car: id, pickupDate, returnDate }),
     );
 
     navigate(`/booking/${id}/documents`);
@@ -66,7 +67,10 @@ const CarDetails = () => {
 
   return (
     <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
+      >
         <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
         Back to all cars
       </button>
@@ -105,7 +109,10 @@ const CarDetails = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { icon: assets.users_icon, text: `${car.seating_capacity} Seats` },
+              {
+                icon: assets.users_icon,
+                text: `${car.seating_capacity} Seats`,
+              },
               { icon: assets.fuel_icon, text: car.fuel_type },
               { icon: assets.car_icon, text: car.transmission },
               { icon: assets.location_icon, text: car.location },
@@ -178,7 +185,9 @@ const CarDetails = () => {
             Book Now
           </button>
 
-          <p className="text-center text-sm">No credit card required to reserve</p>
+          <p className="text-center text-sm">
+            No credit card required to reserve
+          </p>
         </motion.form>
       </div>
     </div>

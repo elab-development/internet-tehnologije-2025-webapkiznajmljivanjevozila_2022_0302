@@ -11,9 +11,6 @@ export const protect = async (req, res, next) => {
         .json({ success: false, message: "not authorized" });
     }
 
-    // ✅ Podržava i:
-    // - "Bearer <token>" (Swagger, browser)
-    // - "<token>" (ako si ranije slao bez Bearer-a)
     const token = authHeader.startsWith("Bearer ")
       ? authHeader.split(" ")[1]
       : authHeader;
@@ -26,7 +23,6 @@ export const protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Kod tebe payload je userId string (payload = userId)
     const userId =
       typeof decoded === "string" ? decoded : decoded?.id || decoded?._id;
 

@@ -3,7 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Login from "./components/Login"; //  DODATO
+import Login from "./components/Login";
 
 import Home from "./pages/Home";
 import Cars from "./pages/Cars";
@@ -18,12 +18,11 @@ import ManageCars from "./pages/owner/ManageCars";
 import ManageBookings from "./pages/owner/ManageBookings";
 import Countries from "./pages/Countries";
 
-
-import {Toaster} from 'react-hot-toast'
-import { useAppContext } from "./context/AppContext";
+import { Toaster } from "react-hot-toast";
+import { useAppContext } from "./context/useAppContext.js";
 
 const App = () => {
-  const {showLogin} = useAppContext()
+  const { showLogin } = useAppContext();
   const location = useLocation();
 
   const isOwnerPath = location.pathname.startsWith("/owner");
@@ -31,11 +30,11 @@ const App = () => {
 
   return (
     <>
-    <Toaster />
-      {!isOwnerPath && <Navbar/>}
+      <Toaster />
+      {!isOwnerPath && <Navbar />}
 
       {/*LOGIN MODAL */}
-      {showLogin && <Login/>}
+      {showLogin && <Login />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -50,7 +49,6 @@ const App = () => {
           <Route path="add-car" element={<AddCar />} />
           <Route path="manage-cars" element={<ManageCars />} />
           <Route path="manage-bookings" element={<ManageBookings />} />
-          
         </Route>
       </Routes>
 

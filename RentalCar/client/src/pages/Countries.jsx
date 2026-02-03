@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 
 const Countries = () => {
   const { countries, countriesLoading } = useAppContext();

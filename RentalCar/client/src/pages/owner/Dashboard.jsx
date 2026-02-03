@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { assets } from "../../assets/assets";
 import Title from "../../components/owner/Title";
-import { useAppContext } from "../../context/AppContext";
+import { useAppContext } from "../../context/useAppContext.js";
 import toast from "react-hot-toast";
 import { Chart } from "react-google-charts";
 
@@ -71,15 +71,22 @@ const Dashboard = () => {
     const res = await axios.get(`/api/owner/stats?year=${year}`);
     const payload = res.data;
 
-    if (!payload.success) throw new Error(payload.message || "Failed to load stats");
+    if (!payload.success)
+      throw new Error(payload.message || "Failed to load stats");
 
     const s = payload.stats || {};
 
     setStats({
       year: s.year ?? year,
-      bookingsMonthly: Array.isArray(s.bookingsMonthly) ? s.bookingsMonthly : Array(12).fill(0),
-      revenueMonthly: Array.isArray(s.revenueMonthly) ? s.revenueMonthly : Array(12).fill(0),
-      statusBreakdown: Array.isArray(s.statusBreakdown) ? s.statusBreakdown : [],
+      bookingsMonthly: Array.isArray(s.bookingsMonthly)
+        ? s.bookingsMonthly
+        : Array(12).fill(0),
+      revenueMonthly: Array.isArray(s.revenueMonthly)
+        ? s.revenueMonthly
+        : Array(12).fill(0),
+      statusBreakdown: Array.isArray(s.statusBreakdown)
+        ? s.statusBreakdown
+        : [],
       topCars: Array.isArray(s.topCars) ? s.topCars : [],
     });
   };
@@ -99,18 +106,43 @@ const Dashboard = () => {
 
   // chart data (Google Charts format)
   const monthNames = useMemo(
-    () => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    []
+    () => [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
+    [],
   );
 
   const bookingsLineData = useMemo(() => {
-    const arr = stats.bookingsMonthly?.length === 12 ? stats.bookingsMonthly : Array(12).fill(0);
-    return [["Month", "Bookings"], ...arr.map((v, i) => [monthNames[i], Number(v) || 0])];
+    const arr =
+      stats.bookingsMonthly?.length === 12
+        ? stats.bookingsMonthly
+        : Array(12).fill(0);
+    return [
+      ["Month", "Bookings"],
+      ...arr.map((v, i) => [monthNames[i], Number(v) || 0]),
+    ];
   }, [stats.bookingsMonthly, monthNames]);
 
   const revenueColumnData = useMemo(() => {
-    const arr = stats.revenueMonthly?.length === 12 ? stats.revenueMonthly : Array(12).fill(0);
-    return [["Month", "Revenue"], ...arr.map((v, i) => [monthNames[i], Number(v) || 0])];
+    const arr =
+      stats.revenueMonthly?.length === 12
+        ? stats.revenueMonthly
+        : Array(12).fill(0);
+    return [
+      ["Month", "Revenue"],
+      ...arr.map((v, i) => [monthNames[i], Number(v) || 0]),
+    ];
   }, [stats.revenueMonthly, monthNames]);
 
   const statusPieData = useMemo(() => {
@@ -119,8 +151,11 @@ const Dashboard = () => {
       .filter(Boolean)
       .map((x) => [String(x.status ?? "unknown"), Number(x.count) || 0]);
 
-    // ako nema podataka, pie chart ume da bude prazan -> dodaj fallback red
-    if (rows.length === 0) return [["Status", "Count"], ["no data", 1]];
+    if (rows.length === 0)
+      return [
+        ["Status", "Count"],
+        ["no data", 1],
+      ];
 
     return [["Status", "Count"], ...rows];
   }, [stats.statusBreakdown]);
@@ -131,7 +166,11 @@ const Dashboard = () => {
       .filter(Boolean)
       .map((x) => [String(x.name ?? "Unknown car"), Number(x.count) || 0]);
 
-    if (rows.length === 0) return [["Car", "Bookings"], ["no data", 0]];
+    if (rows.length === 0)
+      return [
+        ["Car", "Bookings"],
+        ["no data", 0],
+      ];
 
     return [["Car", "Bookings"], ...rows];
   }, [stats.topCars]);
@@ -173,12 +212,17 @@ const Dashboard = () => {
             <div key={index} className="mt-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
-                  <img src={assets.listIconColored} alt="" className="h-5 w-5" />
+                  <img
+                    src={assets.listIconColored}
+                    alt=""
+                    className="h-5 w-5"
+                  />
                 </div>
 
                 <div>
                   <p>
-                    {booking?.car?.brand || "Deleted car"} {booking?.car?.model || ""}
+                    {booking?.car?.brand || "Deleted car"}{" "}
+                    {booking?.car?.model || ""}
                   </p>
                   <p className="text-sm text-gray-500">
                     {booking?.createdAt ? booking.createdAt.split("T")[0] : ""}
@@ -218,7 +262,9 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
         <div className="p-4 md:p-6 border border-borderColor rounded-md">
           <h2 className="text-lg font-medium">Bookings by Month</h2>
-          <p className="text-gray-500 mb-4">Number of created bookings per month</p>
+          <p className="text-gray-500 mb-4">
+            Number of created bookings per month
+          </p>
 
           <Chart
             chartType="LineChart"
