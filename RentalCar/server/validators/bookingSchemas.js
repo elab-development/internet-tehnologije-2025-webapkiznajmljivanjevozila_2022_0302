@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// YYYY-MM-DD (za input type="date")
+// YYYY-MM-DD
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
 export const createBookingSchema = z
@@ -14,7 +14,6 @@ export const createBookingSchema = z
     path: ["returnDate"],
   });
 
-// status enum prilagodi tvom projektu
 export const changeStatusSchema = z.object({
   bookingId: z.string().min(1, "bookingId is required"),
   status: z.enum(["pending", "confirmed", "cancelled", "completed"], {

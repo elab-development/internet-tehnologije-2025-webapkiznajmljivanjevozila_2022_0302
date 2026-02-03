@@ -5,10 +5,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/**
- * OpenAPI base config (OAS 3.0)
- * - Dokumentaciju punimo iz JSDoc komentara u /routes/*.js
- */
 export const swaggerSpec = swaggerJSDoc({
   definition: {
     openapi: "3.0.0",
@@ -20,7 +16,9 @@ export const swaggerSpec = swaggerJSDoc({
     },
     servers: [
       {
-        url: process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`,
+        url:
+          process.env.BASE_URL ||
+          `http://localhost:${process.env.PORT || 3000}`,
         description: "Local/Default server",
       },
     ],

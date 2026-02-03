@@ -10,12 +10,11 @@ const documentSchema = new mongoose.Schema(
       required: true,
     },
 
-    // npr. URL sa ImageKit-a ili lokalni path (kako ti već radi upload)
     fileUrl: { type: String, required: true },
 
     uploadedAt: { type: Date, default: Date.now },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Document", documentSchema);

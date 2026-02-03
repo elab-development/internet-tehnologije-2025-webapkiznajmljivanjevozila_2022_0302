@@ -27,9 +27,8 @@ export const fetchCountries = async () => {
 
         const flag = c?.flags?.png || c?.flags?.svg || "";
 
-        // RESTCountries v3: currencies je objekat npr { RSD: { name, symbol } }
         const currenciesObj = c?.currencies || {};
-        const currencies = Object.keys(currenciesObj || {}).filter(Boolean); // ["RSD", "EUR", ...]
+        const currencies = Object.keys(currenciesObj || {}).filter(Boolean);
 
         return { name, cca2, cca3, flag, currencies };
       })

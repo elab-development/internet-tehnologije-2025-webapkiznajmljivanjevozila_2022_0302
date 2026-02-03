@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Title from "../../components/owner/Title";
-import { useAppContext } from "../../context/AppContext";
+import { useAppContext } from "../../context/useAppContext.js";
 import toast from "react-hot-toast";
 import { assets } from "../../assets/assets";
 
@@ -44,7 +44,11 @@ const ManageBookings = () => {
   };
 
   useEffect(() => {
-    fetchOwnerBookings();
+    const run = async () => {
+      await fetchOwnerBookings();
+    };
+
+    run();
   }, []);
 
   const carTitle = (booking) => {

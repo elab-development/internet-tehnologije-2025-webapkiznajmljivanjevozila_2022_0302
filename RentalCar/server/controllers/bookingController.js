@@ -1,13 +1,11 @@
 import Booking from "../models/Booking.js";
 import Car from "../models/Car.js";
 
-// Helper: safe Date cast
 const toDate = (value) => {
   const d = new Date(value);
   return isNaN(d.getTime()) ? null : d;
 };
 
-// Function to Check Availability of a Car for a given Date range
 const checkAvailability = async (carId, pickupDate, returnDate) => {
   const pick = pickupDate instanceof Date ? pickupDate : toDate(pickupDate);
   const ret = returnDate instanceof Date ? returnDate : toDate(returnDate);
@@ -23,12 +21,10 @@ const checkAvailability = async (carId, pickupDate, returnDate) => {
   return bookings.length === 0;
 };
 
-// ✅ API: Check Availability of Cars for given date + pickupLocation (URL param name required)
 export const checkAvailabilityOfCar = async (req, res) => {
   try {
     const { pickupLocation, location, pickupDate, returnDate } = req.body;
 
-    // accept both keys, but you said pickupLocation must exist
     const loc = (pickupLocation || location || "").trim();
 
     if (!loc || !pickupDate || !returnDate) {
@@ -55,7 +51,6 @@ export const checkAvailabilityOfCar = async (req, res) => {
       });
     }
 
-    // ✅ Find cars by location (case-insensitive exact match) + only isAvailable true
     const cars = await Car.find({
       location: { $regex: new RegExp(`^${loc}$`, "i") },
       isAvailable: true,
@@ -76,7 +71,6 @@ export const checkAvailabilityOfCar = async (req, res) => {
   }
 };
 
-// ✅ API to Create Booking
 export const createBooking = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -116,8 +110,10 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
 
-    // Calculate price based on pickupDate and returnDate
-    const noOfDays = Math.max(1, Math.ceil((ret - pick) / (1000 * 60 * 60 * 24)));
+    const noOfDays = Math.max(
+      1,
+      Math.ceil((ret - pick) / (1000 * 60 * 60 * 24)),
+    );
     const price = (carData.pricePerDay || 0) * noOfDays;
 
     const booking = await Booking.create({
@@ -140,7 +136,6 @@ export const createBooking = async (req, res) => {
   }
 };
 
-// ✅ API to List User Bookings
 export const getUserBookings = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -156,7 +151,6 @@ export const getUserBookings = async (req, res) => {
   }
 };
 
-// ✅ API to get Owner Bookings
 export const getOwnerBookings = async (req, res) => {
   try {
     if (req.user.role !== "owner") {
@@ -175,7 +169,6 @@ export const getOwnerBookings = async (req, res) => {
   }
 };
 
-// ✅ API to change booking status
 export const changeBookingStatus = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -190,7 +183,9 @@ export const changeBookingStatus = async (req, res) => {
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
     }
 
     if (booking.owner.toString() !== _id.toString()) {

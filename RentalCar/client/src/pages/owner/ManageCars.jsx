@@ -1,63 +1,77 @@
 import React, { useEffect, useState } from "react";
 import { assets } from "../../assets/assets";
 import Title from "../../components/owner/Title";
-import { useAppContext } from "../../context/AppContext";
+import { useAppContext } from "../../context/useAppContext.js";
 import toast from "react-hot-toast";
 
 const ManageCars = () => {
-  
-  const {isOwner, axios, currency} = useAppContext()
+  const { isOwner, axios, currency } = useAppContext();
 
   const [cars, setCars] = useState([]);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [carToDelete, setCarToDelete] = useState(null);
+
   const fetchOwnerCars = async () => {
     try {
-      const {data} = await axios.get('/api/owner/cars')
-      if(data.success){
-        setCars(data.cars)
-      }else{
-        toast.error(data.message)
+      const { data } = await axios.get("/api/owner/cars");
+      if (data.success) {
+        setCars(data.cars);
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
   const toggleAvailability = async (carId) => {
     try {
-      const {data} = await axios.post('/api/owner/toggle-car',{carId})
-      if(data.success){
-        toast.success(data.message)
-        fetchOwnerCars()
-      }else{
-        toast.error(data.message)
+      const { data } = await axios.post("/api/owner/toggle-car", { carId });
+      if (data.success) {
+        toast.success(data.message);
+        fetchOwnerCars();
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
-  const deleteCar = async (carId) => {
+  const deleteCar = (carId) => {
+    setCarToDelete(carId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteCar = async () => {
     try {
+      const { data } = await axios.post("/api/owner/delete-car", {
+        carId: carToDelete,
+      });
 
-      const confirm = window.confirm('Are you sure you want to delete this car?')
-
-      if(!confirm) return null
-
-      const {data} = await axios.post('/api/owner/delete-car',{carId})
-      if(data.success){
-        toast.success(data.message)
-        fetchOwnerCars()
-      }else{
-        toast.error(data.message)
+      if (data.success) {
+        toast.success(data.message);
+        fetchOwnerCars();
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
+    } finally {
+      setShowDeleteModal(false);
+      setCarToDelete(null);
     }
-  }
+  };
 
   useEffect(() => {
-     isOwner && fetchOwnerCars();
+    if (!isOwner) return;
+
+    const run = async () => {
+      await fetchOwnerCars();
+    };
+
+    run();
   }, [isOwner]);
 
   return (
@@ -116,7 +130,9 @@ const ManageCars = () => {
                 <td className="flex items-center p-3">
                   <img
                     onClick={() => toggleAvailability(car._id)}
-                    src={car.isAvailable ? assets.eye_close_icon : assets.eye_icon}
+                    src={
+                      car.isAvailable ? assets.eye_close_icon : assets.eye_icon
+                    }
                     alt=""
                     className="cursor-pointer"
                   />
@@ -131,6 +147,40 @@ const ManageCars = () => {
             ))}
           </tbody>
         </table>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6">
+              <h2 className="text-lg font-semibold text-gray-800">
+                Delete car
+              </h2>
+
+              <p className="text-sm text-gray-600 mt-2">
+                Are you sure you want to delete this car?
+                <br />
+                This action cannot be undone.
+              </p>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setCarToDelete(null);
+                  }}
+                  className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={confirmDeleteCar}
+                  className="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

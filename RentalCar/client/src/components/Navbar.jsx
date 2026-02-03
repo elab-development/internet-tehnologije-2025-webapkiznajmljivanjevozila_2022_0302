@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { assets, menuLinks } from "../assets/assets";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext.js";
 import toast from "react-hot-toast";
 import { motion } from "motion/react";
 import CurrencyPicker from "./CurrencyPicker";
@@ -13,23 +13,17 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ Guest -> /login
-  // ✅ Logged-in user (not owner) -> change role -> becomes owner -> go to dashboard
-  // ✅ Owner -> dashboard
   const changeRole = async () => {
-    // 1️⃣ Guest → otvori LOGIN MODAL
     if (!user) {
       setShowLogin(true);
       return;
     }
 
-    // 2️⃣ Ako je već owner → dashboard
     if (isOwner) {
       navigate("/owner");
       return;
     }
 
-    // 3️⃣ Ulogovan user (nije owner) → menjamo rolu
     try {
       const { data } = await axios.post("/api/owner/change-role");
 
@@ -41,7 +35,6 @@ const Navbar = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      // ako token nije validan → opet login modal
       if (error?.response?.status === 401) {
         setShowLogin(true);
         return;
@@ -81,10 +74,10 @@ const Navbar = () => {
           </Link>
         ))}
 
-        {/* ✅ RESTCountries showcase page */}
+        {/* RESTCountries showcase page */}
         <Link to="/countries">Countries</Link>
 
-        {/* ✅ ExchangeRate dropdown */}
+        {/* ExchangeRate dropdown */}
         <CurrencyPicker />
 
         <div className="flex max-sm:flex-col items-start sm:items-center gap-6">

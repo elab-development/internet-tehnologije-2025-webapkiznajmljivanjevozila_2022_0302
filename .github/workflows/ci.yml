@@ -19,8 +19,27 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         app: [client, server]
+
+    env:
+      # client
+      VITE_BASE_URL: ${{ secrets.VITE_BASE_URL }}
+      VITE_CURRENCY: ${{ secrets.VITE_CURRENCY }}
+
+      # server
+      MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+      IMAGEKIT_PUBLIC_KEY: ${{ secrets.IMAGEKIT_PUBLIC_KEY }}
+      IMAGEKIT_PRIVATE_KEY: ${{ secrets.IMAGEKIT_PRIVATE_KEY }}
+      IMAGEKIT_URL_ENDPOINT: ${{ secrets.IMAGEKIT_URL_ENDPOINT }}
+      RESTCOUNTRIES_URL: ${{ secrets.RESTCOUNTRIES_URL }}
+      FX_API_BASE_URL: ${{ secrets.FX_API_BASE_URL }}
+
+      # opšti CI flag
+      CI: true
 
     steps:
       - name: Checkout
@@ -30,18 +49,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
+          cache: npm
+          cache-dependency-path: |
+            RentalCar/client/package-lock.json
+            RentalCar/server/package-lock.json
 
       - name: Install
-        working-directory: ${{ matrix.app }}
+        working-directory: RentalCar/${{ matrix.app }}
         run: npm ci
 
       - name: Tests (if present)
-        working-directory: ${{ matrix.app }}
+        working-directory: RentalCar/${{ matrix.app }}
         run: npm test --if-present
 
       - name: Build (if present)
-        working-directory: ${{ matrix.app }}
+        working-directory: RentalCar/${{ matrix.app }}
         run: npm run build --if-present
 
   docker_images:
@@ -59,15 +81,15 @@ jobs:
       - name: Build server image (no push)
         uses: docker/build-push-action@v6
         with:
-          context: ./server
-          file: ./server/Dockerfile
+          context: ./RentalCar/server
+          file: ./RentalCar/server/Dockerfile
           push: false
           tags: carrental-server:ci
 
       - name: Build client image (no push)
         uses: docker/build-push-action@v6
         with:
-          context: ./client
-          file: ./client/Dockerfile
+          context: ./RentalCar/client
+          file: ./RentalCar/client/Dockerfile
           push: false
           tags: carrental-client:ci
