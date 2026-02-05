@@ -26,11 +26,6 @@ const app = express();
 // Connect to Database
 await connectDB();
 
-/**
- * ✅ CORS - whitelist
- * Frontend (Vite): http://localhost:5173
- * Production: dodaj domen u .env kroz CORS_ORIGINS
- */
 const allowedOrigins = (process.env.CORS_ORIGINS || "")
   .split(",")
   .map((s) => s.trim())
@@ -39,7 +34,6 @@ const allowedOrigins = (process.env.CORS_ORIGINS || "")
 app.use(
   cors({
     origin: function (origin, callback) {
-      // dozvoli Postman / server-to-server (origin undefined)
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) return callback(null, true);
@@ -49,25 +43,14 @@ app.use(
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  })
+  }),
 );
 
-/**
- * ✅ Security headers
- */
 app.use(helmet());
 
-/**
- * ✅ Body parsers (mora pre sanitize/xss)
- */
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-/**
- * ✅ FIX za express-mongo-sanitize:
- * U nekim verzijama express/router-a req.query je getter-only.
- * Ovaj middleware napravi plain objekat i redefiniše req.query kao writable.
- */
 app.use((req, res, next) => {
   try {
     const q = req.query; // pročitaj getter
@@ -83,21 +66,15 @@ app.use((req, res, next) => {
   next();
 });
 
-/**
- * ✅ Rate limiting (globalno)
- */
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 200, // dev OK, u prod može 100
     standardHeaders: true,
     legacyHeaders: false,
-  })
+  }),
 );
 
-/**
- * ✅ Sanitize protiv NoSQL injection (Mongo operators: $gt, $ne, $where...)
- */
 app.use(
   mongoSanitize({
     replaceWith: "_",
@@ -105,12 +82,9 @@ app.use(
     onSanitize: ({ key }) => {
       console.warn(`Sanitized key: ${key}`);
     },
-  })
+  }),
 );
 
-/**
- * ✅ XSS sanitize input
- */
 app.use(xss());
 
 // Health
@@ -120,7 +94,7 @@ app.get("/", (req, res) => res.send("Server is running"));
 app.use(
   "/api-docs",
   swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, { explorer: true })
+  swaggerUi.setup(swaggerSpec, { explorer: true }),
 );
 
 // Routes
@@ -132,9 +106,6 @@ app.use("/api/document", documentRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/integrations", integrationsRouter);
 
-/**
- * ✅ Error handler (da se CORS greške vide kao poruka a ne "random 500")
- */
 app.use((err, req, res, next) => {
   if (err?.message === "Not allowed by CORS") {
     return res.status(403).json({ success: false, message: err.message });
