@@ -23,20 +23,32 @@ export const canAccessBooking = async (req, res, next) => {
         .json({ success: false, message: "Booking not found" });
     }
 
+    // ADMIN: full access
     if (role === "admin") {
       req.booking = booking;
       return next();
     }
 
-    if (booking.user?.toString() === userId) {
+    // USER: only own bookings
+    if (role === "user" && booking.user?.toString() === userId) {
       req.booking = booking;
       return next();
     }
 
-    const car = await Car.findById(booking.car);
-    if (car && car.owner?.toString() === userId) {
-      req.booking = booking;
-      return next();
+    // OWNER: only bookings where he is the owner
+    if (role === "owner") {
+      // Fast path: booking has owner field
+      if (booking.owner?.toString() === userId) {
+        req.booking = booking;
+        return next();
+      }
+
+      // Fallback: verify via car.owner
+      const car = await Car.findById(booking.car);
+      if (car && car.owner?.toString() === userId) {
+        req.booking = booking;
+        return next();
+      }
     }
 
     return res
