@@ -3,6 +3,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Car from "../models/Car.js";
 
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minuta
+
 //Generate JWT Token
 const generateToken = (userId) => {
   const payload = userId;
@@ -56,33 +59,64 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
+
+    const invalidMessage = {
+      success: false,
+      message: "Invalid email or password",
+    };
+
     if (!user) {
-      return res.json({
+      return res.status(401).json(invalidMessage);
+    }
+
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      return res.status(423).json({
         success: false,
-        message: "User not found",
+        message: "Account is temporarily locked. Please try again later.",
       });
+    }
+
+    if (user.lockUntil && user.lockUntil <= new Date()) {
+      user.loginAttempts = 0;
+      user.lockUntil = null;
+      await user.save();
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
-      return res.json({
-        success: false,
-        message: "Invalid Credentials",
-      });
+      user.loginAttempts += 1;
+
+      if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        user.lockUntil = new Date(Date.now() + LOCK_TIME_MS);
+        await user.save();
+
+        return res.status(423).json({
+          success: false,
+          message: "Account is temporarily locked. Please try again later.",
+        });
+      }
+
+      await user.save();
+
+      return res.status(401).json(invalidMessage);
     }
+
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    await user.save();
 
     const token = generateToken(user._id.toString());
 
-    res.json({
+    return res.status(200).json({
       success: true,
       token,
     });
   } catch (error) {
-    // error handling
     console.log(error.message);
-    res.json({
+    return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Server error",
     });
   }
 };
