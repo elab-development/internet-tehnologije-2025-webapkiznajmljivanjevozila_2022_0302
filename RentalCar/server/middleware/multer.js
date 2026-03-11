@@ -133,3 +133,32 @@ export const getExtensionFromMime = (mimeType = "") => {
       return "";
   }
 };
+
+export const isPdfMagicNumberValid = (buffer) => {
+  if (!buffer || buffer.length < 4) return false;
+
+  return (
+    buffer[0] === 0x25 && // %
+    buffer[1] === 0x50 && // P
+    buffer[2] === 0x44 && // D
+    buffer[3] === 0x46    // F
+  );
+};
+
+export const ensureValidPdfSignature = (req, res, next) => {
+  if (!req.file || !req.file.buffer) {
+    return res.status(400).json({
+      success: false,
+      message: "PDF file is required",
+    });
+  }
+
+  if (!isPdfMagicNumberValid(req.file.buffer)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid PDF file signature",
+    });
+  }
+
+  next();
+};

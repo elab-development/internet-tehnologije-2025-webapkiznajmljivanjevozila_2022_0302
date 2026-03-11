@@ -6,6 +6,7 @@ import {
   documentUpload,
   ensureFilePresent,
   ensureImageKitConfigured,
+  ensureValidPdfSignature,
 } from "../middleware/multer.js";
 
 const router = express.Router();
@@ -56,6 +57,7 @@ router.post(
   ensureImageKitConfigured,
   applyUpload(documentUpload.single("file")),
   ensureFilePresent("file"),
+  ensureValidPdfSignature,
   uploadDocument
 );
 
