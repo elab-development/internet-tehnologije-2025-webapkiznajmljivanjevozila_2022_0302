@@ -1,11 +1,14 @@
 import express from "express";
-import multer from "multer";
 import { protect } from "../middleware/auth.js";
 import { uploadDocument } from "../controllers/documentController.js";
-
+import {
+  applyUpload,
+  documentUpload,
+  ensureFilePresent,
+  ensureImageKitConfigured,
+} from "../middleware/multer.js";
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
 /**
  * @openapi
@@ -19,7 +22,7 @@ const upload = multer({ storage: multer.memoryStorage() });
  * /api/document/upload:
  *   post:
  *     tags: [Document]
- *     summary: Upload dokumenta (PDF/JPG/PNG) - multipart
+ *     summary: Upload dokumenta (samo PDF) - multipart
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -28,21 +31,32 @@ const upload = multer({ storage: multer.memoryStorage() });
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required: [file, documentType]
  *             properties:
  *               file:
  *                 type: string
  *                 format: binary
- *               type:
+ *                 description: PDF dokument, maksimalno 5MB
+ *               documentType:
  *                 type: string
- *                 example: "DRIVERS_LICENSE"
+ *                 enum: [DRIVING_LICENSE, ID_CARD, PASSPORT, OTHER]
  *     responses:
  *       200:
  *         description: Dokument uploadovan
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/DocumentUploadResponse'
+ *       400:
+ *         description: Neispravan dokument ili neispravan request
+ *       413:
+ *         description: Fajl je prevelik
+ *       503:
+ *         description: Upload servis nije dostupan
  */
-router.post("/upload", protect, upload.single("file"), uploadDocument);
+router.post(
+  "/upload",
+  protect,
+  ensureImageKitConfigured,
+  applyUpload(documentUpload.single("file")),
+  ensureFilePresent("file"),
+  uploadDocument
+);
 
 export default router;
