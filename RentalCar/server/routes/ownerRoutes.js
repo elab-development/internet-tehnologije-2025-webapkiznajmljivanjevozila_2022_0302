@@ -1,6 +1,11 @@
 import express from "express";
 import { protect } from "../middleware/auth.js";
-import upload from "../middleware/multer.js";
+import {
+  applyUpload,
+  imageUpload,
+  ensureFilePresent,
+  ensureImageKitConfigured,
+} from "../middleware/multer.js";
 import { requireRole } from "../middleware/roles.js";
 
 import {
@@ -79,7 +84,9 @@ ownerRouter.post(
   "/add-car",
   protect,
   requireRole("owner", "admin"),
-  upload.single("image"),
+  ensureImageKitConfigured,
+  applyUpload(imageUpload.single("image")),
+  ensureFilePresent("image"),
   addCar
 );
 
@@ -251,7 +258,9 @@ ownerRouter.post(
   "/update-image",
   protect,
   requireRole("owner", "admin"),
-  upload.single("image"),
+  ensureImageKitConfigured,
+  applyUpload(imageUpload.single("image")),
+  ensureFilePresent("image"),
   updateUserImage
 );
 export default ownerRouter;
