@@ -20,6 +20,8 @@ import documentRouter from "./routes/documentRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
 import integrationsRouter from "./routes/integrationsRoutes.js";
 
+import { securityAudit } from "./middleware/securityAudit.js";
+
 // Initialize Express App
 const app = express();
 
@@ -86,6 +88,8 @@ app.use(
 );
 
 app.use(xss());
+
+app.use(securityAudit);
 
 // Health
 app.get("/", (req, res) => res.send("Server is running"));
