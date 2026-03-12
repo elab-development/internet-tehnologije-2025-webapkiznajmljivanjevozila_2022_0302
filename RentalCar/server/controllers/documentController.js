@@ -2,6 +2,7 @@ import imagekit from "../configs/imageKit.js";
 import Document from "../models/Document.js";
 import User from "../models/User.js";
 import { getExtensionFromMime } from "../middleware/multer.js";
+import logSecurityEvent from "../services/securityLogger.js";
 
 const ALLOWED_DOCUMENT_TYPES = [
   "DRIVING_LICENSE",
