@@ -1,4 +1,4 @@
-import logSecurityEvent from "../services/securityLogger.js";
+import { logSecurityEvent } from "../services/securityLogger.js";
 
 export const requireRole =
   (...allowedRoles) =>

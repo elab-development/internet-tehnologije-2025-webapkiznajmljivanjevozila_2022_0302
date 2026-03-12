@@ -1,46 +1,19 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const SecurityLogSchema = new mongoose.Schema({
-  event: {
-    type: String,
-    required: true
-  },
-
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: false
-  },
-
-  email: {
-    type: String
-  },
-
-  ip: {
-    type: String
-  },
-
-  endpoint: {
-    type: String
-  },
-
-  method: {
-    type: String
-  },
-
-  status: {
-    type: Number
-  },
-
-  details: {
-    type: String
-  },
-
+const securityLogSchema = new mongoose.Schema({
+  event: { type: String, required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  ip: String,
+  path: String,
+  method: String,
+  status: Number,
+  details: String,
   createdAt: {
     type: Date,
     default: Date.now
   }
-
 });
 
-module.exports = mongoose.model("SecurityLog", SecurityLogSchema);
+const SecurityLog = mongoose.model("SecurityLog", securityLogSchema);
+
+export default SecurityLog;

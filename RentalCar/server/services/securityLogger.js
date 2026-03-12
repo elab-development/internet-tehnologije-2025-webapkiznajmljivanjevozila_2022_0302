@@ -1,33 +1,23 @@
-const SecurityLog = require("../models/SecurityLog");
+import SecurityLog from "../models/SecurityLog.js";
 
-const logSecurityEvent = async ({
+export const logSecurityEvent = async ({
   event,
   userId = null,
-  email = null,
   req = null,
   status = null,
   details = null
 }) => {
-
   try {
-
     await SecurityLog.create({
       event,
-      userId,
-      email,
-      ip: req?.ip,
-      endpoint: req?.originalUrl,
-      method: req?.method,
+      user: userId,
+      ip: req?.ip || null,
+      path: req?.originalUrl || null,
+      method: req?.method || null,
       status,
       details
     });
-
-  } catch (error) {
-
-    console.error("Security log error:", error);
-
+  } catch (err) {
+    console.error("Security log failed:", err.message);
   }
-
 };
-
-module.exports = logSecurityEvent;
