@@ -62,6 +62,13 @@ export const uploadDocument = async (req, res) => {
       $addToSet: { documents: doc._id },
     });
 
+    await logSecurityEvent({
+      event: "DOCUMENT_UPLOAD",
+      userId: req.user?._id,
+      req,
+      status: 201,
+      details: "Document uploaded"
+    });
     return res.status(201).json({
       success: true,
       message: "Document uploaded successfully",
