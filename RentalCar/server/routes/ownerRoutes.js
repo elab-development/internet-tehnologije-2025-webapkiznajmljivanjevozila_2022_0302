@@ -7,6 +7,7 @@ import {
   ensureImageKitConfigured,
 } from "../middleware/multer.js";
 import { requireRole } from "../middleware/roles.js";
+import { getSecurityLogs } from "../controllers/adminSecurityController.js";
 
 import {
   addCar,
@@ -262,5 +263,40 @@ ownerRouter.post(
   applyUpload(imageUpload.single("image")),
   ensureFilePresent("image"),
   updateUserImage
+);
+
+/**
+ * @openapi
+ * /api/owner/security-logs:
+ *   get:
+ *     tags: [Owner]
+ *     summary: Pregled security logova (admin)
+ *     description: Admin može pregledati sve security događaje (login success, login fail, request audit).
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: event
+ *         schema:
+ *           type: string
+ *         description: Filter po tipu događaja (npr. LOGIN_FAILED)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Broj logova (default 50)
+ *     responses:
+ *       200:
+ *         description: Lista security logova
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ */
+ownerRouter.get(
+  "/security-logs",
+  protect,
+  requireRole("owner", "admin"),
+  getSecurityLogs
 );
 export default ownerRouter;

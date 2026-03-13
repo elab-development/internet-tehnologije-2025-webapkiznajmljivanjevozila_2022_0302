@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Car from "../models/Car.js";
+import { logSecurityEvent } from "../services/securityLogger.js";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minuta
@@ -75,8 +76,16 @@ export const loginUser = async (req, res) => {
     };
 
     if (!user) {
-      return res.status(401).json(invalidMessage);
-    }
+      await logSecurityEvent({
+        event: "LOGIN_FAILED",
+        email,
+        req,
+        status: 401,
+        details: "User not found"
+      });
+
+  return res.status(401).json(invalidMessage);
+}
 
     if (user.lockUntil && user.lockUntil > new Date()) {
       return res.status(423).json({
@@ -94,6 +103,15 @@ export const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
+
+      await logSecurityEvent({
+        event: "LOGIN_FAILED",
+        email,
+        req,
+        status: 401,
+        details: "Invalid password"
+      });
+
       user.loginAttempts += 1;
 
       if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
@@ -116,6 +134,14 @@ export const loginUser = async (req, res) => {
     await user.save();
 
     const token = generateToken(user);
+
+    await logSecurityEvent({
+      event: "LOGIN_SUCCESS",
+      userId: user._id,
+      email: user.email,
+      req,
+      status: 200
+    });
 
     return res.status(200).json({
       success: true,
