@@ -17,16 +17,15 @@ const BookingDocuments = () => {
 
   const [car, setCar] = useState(carFromContext);
 
-  // Upload state
-  const [idCardPdf, setIdCardPdf] = useState(null); // optional
-  const [passportPdf, setPassportPdf] = useState(null); // required
-  const [licensePdf, setLicensePdf] = useState(null); // required
+  const [idCardPdf, setIdCardPdf] = useState(null);
+  const [passportPdf, setPassportPdf] = useState(null);
+  const [licensePdf, setLicensePdf] = useState(null);
 
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("CARD"); // CARD | CASH
+  const [paymentMethod, setPaymentMethod] = useState("CARD");
 
   const isFormValid = Boolean(passportPdf && licensePdf);
 
@@ -36,7 +35,7 @@ const BookingDocuments = () => {
 
   const uploadDoc = async (file, documentType) => {
     const formData = new FormData();
-    formData.append("file", file); // server očekuje field name "file"
+    formData.append("file", file);
     formData.append("documentType", documentType);
 
     const { data } = await axios.post("/api/document/upload", formData);
@@ -44,6 +43,7 @@ const BookingDocuments = () => {
     if (!data?.success) {
       throw new Error(data?.message || "Document upload failed");
     }
+
     return data.document;
   };
 
@@ -77,9 +77,7 @@ const BookingDocuments = () => {
         return;
       }
 
-      if (idCardPdf) {
-        await uploadDoc(idCardPdf, "ID_CARD");
-      }
+      if (idCardPdf) await uploadDoc(idCardPdf, "ID_CARD");
       await uploadDoc(passportPdf, "PASSPORT");
       await uploadDoc(licensePdf, "DRIVING_LICENSE");
 
@@ -98,39 +96,14 @@ const BookingDocuments = () => {
       const pending = JSON.parse(
         localStorage.getItem("pendingBooking") || "null",
       );
-      if (!pending || pending.car !== id) {
-        toast.error("Missing booking data. Please select dates again.");
-        setShowPaymentModal(false);
-        navigate(`/car-details/${id}`);
-        return;
-      }
 
       const bookingRes = await axios.post("/api/booking/create", pending);
-      const bookingData = bookingRes?.data;
 
-      if (!bookingData?.success) {
-        toast.error(bookingData?.message || "Booking failed");
-        return;
-      }
-
-      const booking = bookingData.booking;
-      const bookingId = booking?._id;
-
-      if (!bookingId) {
-        toast.error("Booking created, but booking id is missing.");
-        return;
-      }
-
-      const amount = booking?.price ?? bookingData?.price ?? pending?.price;
-
-      if (amount == null) {
-        toast.error("Payment amount is missing.");
-        return;
-      }
+      const booking = bookingRes?.data?.booking;
 
       const payRes = await axios.post("/api/payment", {
-        bookingId,
-        amount,
+        bookingId: booking._id,
+        amount: booking.price,
         method: paymentMethod,
         currency: "EUR",
       });
@@ -141,8 +114,10 @@ const BookingDocuments = () => {
       }
 
       toast.success("Booking completed!");
+
       localStorage.removeItem("pendingBooking");
       setShowPaymentModal(false);
+
       navigate("/my-bookings");
       window.scrollTo(0, 0);
     } catch (err) {
@@ -154,71 +129,76 @@ const BookingDocuments = () => {
 
   if (!car) {
     return (
-      <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16">
-        <p className="text-gray-500">Car not found.</p>
+      <div className="px-6 md:px-16 lg:px-24 xl:px-32 pt-32 bg-[#0c0f14] min-h-screen">
+        <p className="text-gray-400">Car not found.</p>
       </div>
     );
   }
 
   return (
-    <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16 relative">
-      {/* Back */}
+    <div className="px-6 md:px-16 lg:px-24 xl:px-32 pt-32 pb-16 bg-[#0c0f14] min-h-screen">
+      {/* BACK BUTTON */}
+
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
+        className="flex items-center gap-2 mb-8 text-gray-400 hover:text-[#c6a96b] transition-none"
       >
-        <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
-        Back
+        <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-70" />
+
+        <span className="border-b border-transparent hover:border-[#c6a96b]">
+          Back
+        </span>
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-        {/* Left: summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* LEFT SIDE */}
+
         <div className="lg:col-span-2">
           <img
             src={car.image}
-            alt={`${car.brand ?? ""} ${car.model ?? ""}`}
-            className="w-full h-auto object-cover rounded-xl mb-6 shadow-md"
+            alt=""
+            className="w-full rounded-xl mb-6 shadow-xl"
           />
 
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-3xl font-bold text-white">
             {car.brand} {car.model}
           </h1>
-          <p className="text-gray-500 text-lg">
+
+          <p className="text-gray-400 text-lg">
             {car.category} • {car.year}
           </p>
 
-          <hr className="border-borderColor my-6" />
+          <hr className="border-white/10 my-6" />
 
-          <p className="text-gray-500">
-            Please upload your documents in PDF format to proceed with the
-            booking.
+          <p className="text-gray-400">
+            Please upload your documents in PDF format to proceed with booking.
           </p>
         </div>
 
-        {/* Right: upload form */}
+        {/* RIGHT FORM */}
+
         <form
           onSubmit={handleSubmit}
-          className="shadow-lg h-max sticky top-18 rounded-xl p-6 space-y-6 text-gray-500"
+          className="backdrop-blur-md bg-white/5 border border-white/10
+          rounded-xl p-6 space-y-6 sticky top-24 h-max text-gray-300"
         >
-          <h2 className="text-xl font-semibold text-gray-800">Documents</h2>
+          <h2 className="text-xl font-semibold text-white">Documents</h2>
 
-          {/* ID card optional */}
+          {/* ID CARD */}
+
           <div className="flex flex-col gap-2">
-            <label
-              htmlFor="id-card"
-              className="flex items-center justify-between"
-            >
+            <label className="flex justify-between">
               <span>National ID Card (PDF)</span>
               <span className="text-xs text-gray-400">Optional</span>
             </label>
+
             <input
-              id="id-card"
               type="file"
               accept="application/pdf"
-              className="border border-borderColor px-3 py-2 rounded-lg"
+              className="bg-[#0c0f14] border border-white/10 px-3 py-2 rounded-lg"
               onChange={(e) => setIdCardPdf(e.target.files?.[0] ?? null)}
-              disabled={isSubmitting}
             />
+
             {idCardPdf && (
               <p className="text-xs text-gray-400">
                 Selected: {idCardPdf.name}
@@ -226,24 +206,22 @@ const BookingDocuments = () => {
             )}
           </div>
 
-          {/* Passport required */}
+          {/* PASSPORT */}
+
           <div className="flex flex-col gap-2">
-            <label
-              htmlFor="passport"
-              className="flex items-center justify-between"
-            >
+            <label className="flex justify-between">
               <span>Passport (PDF)</span>
-              <span className="text-xs text-red-500">Required</span>
+              <span className="text-xs text-red-400">Required</span>
             </label>
+
             <input
-              id="passport"
               type="file"
               accept="application/pdf"
-              className="border border-borderColor px-3 py-2 rounded-lg"
               required
+              className="bg-[#0c0f14] border border-white/10 px-3 py-2 rounded-lg"
               onChange={(e) => setPassportPdf(e.target.files?.[0] ?? null)}
-              disabled={isSubmitting}
             />
+
             {passportPdf && (
               <p className="text-xs text-gray-400">
                 Selected: {passportPdf.name}
@@ -251,24 +229,22 @@ const BookingDocuments = () => {
             )}
           </div>
 
-          {/* Driver's license required */}
+          {/* LICENSE */}
+
           <div className="flex flex-col gap-2">
-            <label
-              htmlFor="license"
-              className="flex items-center justify-between"
-            >
+            <label className="flex justify-between">
               <span>Driver’s License (PDF)</span>
-              <span className="text-xs text-red-500">Required</span>
+              <span className="text-xs text-red-400">Required</span>
             </label>
+
             <input
-              id="license"
               type="file"
               accept="application/pdf"
-              className="border border-borderColor px-3 py-2 rounded-lg"
               required
+              className="bg-[#0c0f14] border border-white/10 px-3 py-2 rounded-lg"
               onChange={(e) => setLicensePdf(e.target.files?.[0] ?? null)}
-              disabled={isSubmitting}
             />
+
             {licensePdf && (
               <p className="text-xs text-gray-400">
                 Selected: {licensePdf.name}
@@ -276,83 +252,21 @@ const BookingDocuments = () => {
             )}
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-red-400 text-sm">{error}</p>}
 
           <button
             type="submit"
             disabled={!isFormValid || isSubmitting}
-            className={`w-full transition-all py-3 font-medium text-white rounded-xl cursor-pointer
-              ${
-                isFormValid && !isSubmitting
-                  ? "bg-primary hover:bg-primary-dull"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
+            className="w-full py-3 font-semibold rounded-xl bg-[#c6a96b] text-black disabled:opacity-50"
           >
             {isSubmitting ? "Processing..." : "Book Now"}
           </button>
 
-          <p className="text-center text-sm">
+          <p className="text-center text-sm text-gray-400">
             No credit card required to reserve
           </p>
         </form>
       </div>
-
-      {/* ✅ Payment Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              Choose payment method
-            </h3>
-
-            <div className="space-y-3 mb-6 text-gray-700">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="pay"
-                  value="CARD"
-                  checked={paymentMethod === "CARD"}
-                  onChange={() => setPaymentMethod("CARD")}
-                  disabled={isSubmitting}
-                />
-                Card
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="pay"
-                  value="CASH"
-                  checked={paymentMethod === "CASH"}
-                  onChange={() => setPaymentMethod("CASH")}
-                  disabled={isSubmitting}
-                />
-                Cash
-              </label>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowPaymentModal(false)}
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={handleConfirmPayment}
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-dull"
-              >
-                {isSubmitting ? "Processing..." : "Confirm"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

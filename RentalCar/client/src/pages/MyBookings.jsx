@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { dummyMyBookingsData, assets } from "../assets/assets";
+import { assets } from "../assets/assets";
 import Title from "../components/Title";
 import { useAppContext } from "../context/useAppContext.js";
 import toast from "react-hot-toast";
@@ -13,6 +13,7 @@ const MyBookings = () => {
   const fetchMyBookings = async () => {
     try {
       const { data } = await axios.get("/api/booking/user");
+
       if (data.success) {
         setBookings(data.bookings);
       } else {
@@ -35,9 +36,9 @@ const MyBookings = () => {
 
   const formatDate = (d) => {
     if (!d) return "-";
-    // ako je ISO string: "2025-06-13T00:00:00.000Z"
+
     if (typeof d === "string" && d.includes("T")) return d.split("T")[0];
-    // ako je vec "2025-06-13"
+
     return String(d);
   };
 
@@ -58,11 +59,11 @@ const MyBookings = () => {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="px-6 md:px-16 lg:px-24 xl:px-32 2xl:px-48 mt-16 text-sm max-w-7xl"
+      className="px-6 md:px-16 lg:px-24 xl:px-32 pt-32 pb-16 text-sm max-w-7xl min-h-screen"
     >
       <Title
         title="My Bookings"
-        subTitle="View and manage your all car bookings"
+        subTitle="View and manage all your car bookings"
         align="left"
       />
 
@@ -72,91 +73,110 @@ const MyBookings = () => {
 
           return (
             <motion.div
+              key={booking?._id ?? index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              key={booking?._id ?? index}
-              className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 border border-borderColor rounded-lg mt-5 first:mt-12"
+              transition={{ duration: 0.4, delay: index * 0.08 }}
+              className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6
+              bg-[#11151c] border border-[#c6a96b]/20
+              rounded-xl mt-5 first:mt-12
+              hover:scale-[1.01] hover:border-[#c6a96b]/40
+              transition-all duration-300"
             >
-              {/* Car Image + Info */}
+              {/* CAR IMAGE + INFO */}
+
               <div className="md:col-span-1">
-                <div className="rounded-md overflow-hidden mb-3">
+                <div className="rounded-lg overflow-hidden mb-3 shadow-lg">
                   <img
                     src={booking?.car?.image}
-                    alt={`${booking?.car?.brand ?? "Car"} ${booking?.car?.model ?? "Removed"}`}
-                    className="w-full h-auto aspect-video object-cover"
+                    alt={`${booking?.car?.brand ?? "Car"} ${
+                      booking?.car?.model ?? ""
+                    }`}
+                    className="w-full aspect-video object-cover hover:scale-105 transition duration-500"
                   />
                 </div>
 
-                <p className="text-lg font-medium mt-2">
+                <p className="text-lg font-semibold text-white">
                   {booking?.car?.brand} {booking?.car?.model}
                 </p>
 
-                <p className="text-gray-500">
+                <p className="text-gray-400">
                   {booking?.car?.year} • {booking?.car?.category} •{" "}
                   {booking?.car?.location}
                 </p>
               </div>
 
-              {/* Booking Info */}
+              {/* BOOKING INFO */}
+
               <div className="md:col-span-2">
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="px-3 py-1.5 bg-light rounded">
+                <div className="flex items-center gap-2 mb-4">
+                  <p className="px-3 py-1.5 bg-[#0c0f14] text-gray-300 rounded">
                     Booking #{index + 1}
                   </p>
 
                   <p
                     className={`px-3 py-1 text-xs rounded-full ${
                       booking?.status === "confirmed"
-                        ? "bg-green-400/15 text-green-600"
-                        : "bg-yellow-400/15 text-yellow-600"
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-yellow-500/20 text-yellow-400"
                     }`}
                   >
                     {booking?.status ?? "pending"}
                   </p>
                 </div>
 
-                {/* Rental Period */}
+                {/* RENTAL PERIOD */}
+
                 <div className="flex items-start gap-2 mt-3">
                   <img
                     src={assets.calendar_icon_colored}
                     alt=""
-                    className="w-4 h-4 mt-1"
+                    className="w-4 h-4 mt-1 opacity-90"
                   />
+
                   <div>
-                    <p className="text-gray-500">Rental Period</p>
-                    <p>
-                      {formatDate(booking?.pickupDate)} To{" "}
+                    <p className="text-gray-400">Rental Period</p>
+
+                    <p className="text-white">
+                      {formatDate(booking?.pickupDate)} —{" "}
                       {formatDate(booking?.returnDate)}
                     </p>
                   </div>
                 </div>
 
-                {/* Pick-up Location */}
-                <div className="flex items-start gap-2 mt-3">
+                {/* LOCATION */}
+
+                <div className="flex items-start gap-2 mt-4">
                   <img
                     src={assets.location_icon_colored}
                     alt=""
-                    className="w-4 h-4 mt-1"
+                    className="w-4 h-4 mt-1 opacity-90"
                   />
+
                   <div>
-                    <p className="text-gray-500">Pick-up Location</p>
-                    <p>{booking?.car?.location ?? "-"}</p>
+                    <p className="text-gray-400">Pick-up Location</p>
+
+                    <p className="text-white">
+                      {booking?.car?.location ?? "-"}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Price */}
-              <div className="md:col-span-1 flex flex-col justify-between gap-6">
-                <div className="text-sm text-gray-500 text-right">
-                  <p>Total Price</p>
+              {/* PRICE */}
 
-                  <h1 className="text-2xl font-semibold text-primary">
+              <div className="md:col-span-1 flex flex-col justify-between gap-6">
+                <div className="text-right">
+                  <p className="text-gray-400">Total Price</p>
+
+                  <h1 className="text-2xl font-bold text-[#c6a96b]">
                     {currency}
                     {price}
                   </h1>
 
-                  <p>Booked on {formatDate(booking?.createdAt)}</p>
+                  <p className="text-gray-500 mt-1 text-sm">
+                    Booked on {formatDate(booking?.createdAt)}
+                  </p>
                 </div>
               </div>
             </motion.div>
