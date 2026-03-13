@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
@@ -21,19 +20,22 @@ import Countries from "./pages/Countries";
 import { Toaster } from "react-hot-toast";
 import { useAppContext } from "./context/useAppContext.js";
 
+import ScrollToTop from "./components/ScrollToTop";
+
 const App = () => {
   const { showLogin } = useAppContext();
   const location = useLocation();
 
   const isOwnerPath = location.pathname.startsWith("/owner");
-  const isHomePage = location.pathname === "/";
 
   return (
     <>
+      <ScrollToTop />
+
       <Toaster />
+
       {!isOwnerPath && <Navbar />}
 
-      {/*LOGIN MODAL */}
       {showLogin && <Login />}
 
       <Routes>
@@ -52,7 +54,7 @@ const App = () => {
         </Route>
       </Routes>
 
-      {!isOwnerPath && !isHomePage && <Footer />}
+      <Footer />
     </>
   );
 };

@@ -1,6 +1,7 @@
 import React from "react";
 import { assets } from "../assets/assets";
 import { motion } from "motion/react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -96,16 +97,16 @@ const Footer = () => {
             </h2>
             <ul className="mt-3 flex flex-col gap-1.5">
               <li>
-                <a href="#">Home</a>
+                <Link to="/">Home</Link>
               </li>
               <li>
-                <a href="#">Browse Cars</a>
+                <Link to="/cars">Browse Cars</Link>
               </li>
               <li>
-                <a href="#">List Your Car</a>
+                <Link to="/owner">List Your Car</Link>
               </li>
               <li>
-                <a href="#">About Us</a>
+                <Link to="/about">About Us</Link>
               </li>
             </ul>
           </div>
