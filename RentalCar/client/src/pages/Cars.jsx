@@ -38,7 +38,7 @@ const Cars = () => {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const carsPerPage = 9;
+  const carsPerPage = 12; // sada 4x3 grid
 
   const toggleType = (label) => {
     setTypes((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -101,8 +101,6 @@ const Cars = () => {
     return list;
   }, [cars, input, types, priceRanges, sortBy]);
 
-  // PAGINATION
-
   const totalPages = Math.ceil(filteredCars.length / carsPerPage);
 
   const startIndex = (currentPage - 1) * carsPerPage;
@@ -116,8 +114,8 @@ const Cars = () => {
   };
 
   return (
-    <div className="pt-24 pb-20 px-6 md:px-16 lg:px-24 xl:px-32">
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-[320px_1fr] gap-12">
+    <div className="pt-24 pb-20 px-6 md:px-12 lg:px-16 xl:px-20">
+      <div className="grid lg:grid-cols-[300px_1fr] gap-12">
         {/* SIDEBAR */}
 
         <aside className="space-y-8">
@@ -198,7 +196,7 @@ const Cars = () => {
         {/* CARS */}
 
         <div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {paginatedCars.length === 0 ? (
               <p className="text-gray-400">No cars found.</p>
             ) : (
