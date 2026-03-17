@@ -184,8 +184,6 @@ const BookingDocuments = () => {
         >
           <h2 className="text-xl font-semibold text-white">Documents</h2>
 
-          {/* ID CARD */}
-
           <div className="flex flex-col gap-2">
             <label className="flex justify-between">
               <span>National ID Card (PDF)</span>
@@ -205,8 +203,6 @@ const BookingDocuments = () => {
               </p>
             )}
           </div>
-
-          {/* PASSPORT */}
 
           <div className="flex flex-col gap-2">
             <label className="flex justify-between">
@@ -228,8 +224,6 @@ const BookingDocuments = () => {
               </p>
             )}
           </div>
-
-          {/* LICENSE */}
 
           <div className="flex flex-col gap-2">
             <label className="flex justify-between">
@@ -267,6 +261,55 @@ const BookingDocuments = () => {
           </p>
         </form>
       </div>
+
+      {/* 🔥 PAYMENT MODAL (DODATO) */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#0c0f14] p-6 rounded-xl w-full max-w-md border border-white/10">
+            <h2 className="text-xl text-white mb-4">Select Payment Method</h2>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => setPaymentMethod("CARD")}
+                className={`py-2 rounded-lg ${
+                  paymentMethod === "CARD"
+                    ? "bg-[#c6a96b] text-black"
+                    : "bg-white/10 text-white"
+                }`}
+              >
+                Card
+              </button>
+
+              <button
+                onClick={() => setPaymentMethod("CASH")}
+                className={`py-2 rounded-lg ${
+                  paymentMethod === "CASH"
+                    ? "bg-[#c6a96b] text-black"
+                    : "bg-white/10 text-white"
+                }`}
+              >
+                Cash
+              </button>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="flex-1 py-2 bg-gray-600 rounded-lg text-white"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleConfirmPayment}
+                className="flex-1 py-2 bg-[#c6a96b] text-black rounded-lg"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
