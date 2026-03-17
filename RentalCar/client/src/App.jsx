@@ -21,6 +21,7 @@ import { Toaster } from "react-hot-toast";
 import { useAppContext } from "./context/useAppContext.js";
 
 import ScrollToTop from "./components/ScrollToTop";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 
 const App = () => {
   const { showLogin } = useAppContext();
@@ -30,10 +31,13 @@ const App = () => {
 
   return (
     <>
-      <div className="min-h-screen
+      <div
+        className="min-h-screen
         bg-[linear-gradient(180deg,#0f1115,#14161c,#111318)]
-        text-white">
+        text-white"
+      >
         <ScrollToTop />
+        <ScrollToTopButton />
 
         <Toaster />
 
