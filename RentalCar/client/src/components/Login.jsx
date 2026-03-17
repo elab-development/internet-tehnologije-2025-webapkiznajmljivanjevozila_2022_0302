@@ -15,12 +15,11 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const endpoint = state === "login" ? "/api/user/login" : "/api/user/register";
+      const endpoint =
+        state === "login" ? "/api/user/login" : "/api/user/register";
 
       const payload =
-        state === "login"
-          ? { email, password }
-          : { name, email, password };
+        state === "login" ? { email, password } : { name, email, password };
 
       const { data } = await axios.post(endpoint, payload);
 
@@ -40,20 +39,20 @@ const Login = () => {
   return (
     <div
       onClick={() => setShowLogin(false)}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 text-sm text-gray-600"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 text-sm text-gray-300"
     >
       <form
         onSubmit={onSubmitHandler}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white text-gray-500 mx-4 text-left text-sm shadow-[0px_0px_10px_0px] shadow-black/10 max-w-[360px] w-full md:p-6 p-4 rounded-xl"
+        className="bg-[#0c0f14] text-gray-300 mx-4 text-left text-sm shadow-[0px_0px_20px_0px_rgba(0,0,0,0.6)] max-w-[360px] w-full md:p-6 p-4 rounded-xl border border-white/10"
       >
-        <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
+        <h2 className="text-2xl font-semibold mb-6 text-center text-white">
           {state === "login" ? "Login Now" : "Sign Up"}
         </h2>
 
         {state === "register" && (
           <input
-            className="w-full border my-2 border-gray-500/30 outline-none rounded-full py-2.5 px-4"
+            className="w-full border my-2 border-white/10 bg-[#0c0f14] text-white outline-none rounded-full py-2.5 px-4"
             type="text"
             placeholder="Name"
             required
@@ -63,7 +62,7 @@ const Login = () => {
         )}
 
         <input
-          className="w-full border my-2 border-gray-500/30 outline-none rounded-full py-2.5 px-4"
+          className="w-full border my-2 border-white/10 bg-[#0c0f14] text-white outline-none rounded-full py-2.5 px-4"
           type="email"
           placeholder="Enter your email"
           required
@@ -72,7 +71,7 @@ const Login = () => {
         />
 
         <input
-          className="w-full border my-2 border-gray-500/30 outline-none rounded-full py-2.5 px-4"
+          className="w-full border my-2 border-white/10 bg-[#0c0f14] text-white outline-none rounded-full py-2.5 px-4"
           type="password"
           placeholder="Enter your password"
           required
@@ -82,7 +81,7 @@ const Login = () => {
 
         <button
           type="submit"
-          className="w-full mt-4 mb-3 bg-indigo-500 hover:bg-indigo-600/90 active:scale-95 transition py-2.5 rounded-full text-white"
+          className="w-full mt-4 mb-3 bg-[#c6a96b] hover:bg-[#d8b46b] active:scale-95 transition py-2.5 rounded-full text-black font-semibold"
         >
           {state === "login" ? "Log in" : "Create Account"}
         </button>
@@ -93,7 +92,7 @@ const Login = () => {
               Don’t have an account?{" "}
               <a
                 href="#"
-                className="text-blue-500 underline"
+                className="text-[#c6a96b] underline"
                 onClick={(e) => {
                   e.preventDefault();
                   setState("register");
@@ -107,7 +106,7 @@ const Login = () => {
               Already have an account?{" "}
               <a
                 href="#"
-                className="text-blue-500 underline"
+                className="text-[#c6a96b] underline"
                 onClick={(e) => {
                   e.preventDefault();
                   setState("login");
