@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { assets } from "../assets/assets";
 import Loader from "../components/Loader";
 import { useAppContext } from "../context/useAppContext.js";
@@ -11,6 +11,11 @@ import CountryBadge from "../components/CountryBadge";
 
 const CarDetails = () => {
   const { id } = useParams();
+
+  const [searchParams] = useSearchParams();
+  const urlPickupDate = searchParams.get("pickupDate") || "";
+  const urlReturnDate = searchParams.get("returnDate") || "";
+
   const {
     cars,
     pickupDate,
@@ -33,10 +38,11 @@ const CarDetails = () => {
     car?.pricePerDay,
   );
 
+  // 🔥 IZMENJENO — postavi datume iz URL-a (UMESTO resetovanja)
   useEffect(() => {
-    setPickupDate("");
-    setReturnDate("");
-  }, [id, setPickupDate, setReturnDate]);
+    if (urlPickupDate) setPickupDate(urlPickupDate);
+    if (urlReturnDate) setReturnDate(urlReturnDate);
+  }, [id]);
 
   const country = useMemo(
     () => findCountryByLocation(countries, car?.location),
