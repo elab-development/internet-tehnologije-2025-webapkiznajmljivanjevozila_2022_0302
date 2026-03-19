@@ -1,5 +1,6 @@
 import React from "react";
-import Title from "./Title";
+
+const goldBg = "linear-gradient(135deg, #c6a96b, #b89655, #d4b873)";
 
 const Testimonial = () => {
   const cardsData = [
@@ -34,60 +35,50 @@ const Testimonial = () => {
   ];
 
   const Card = ({ card }) => (
-    <div
-      className="
-      p-6 mx-4 w-72 shrink-0 rounded-xl
-      backdrop-blur-md
-      bg-dark-soft/80
-      border border-border
-      hover:border-primary
-      hover:shadow-[0_0_25px_rgba(198,169,107,0.35)]
-      transition
-      "
-    >
+    <div className="p-6 mx-4 w-72 shrink-0 rounded-xl bg-[#181f18] border border-white/10 hover:border-[#c6a96b] hover:shadow-[0_0_25px_rgba(198,169,107,0.4)] transition">
       <div className="flex gap-3 items-center">
         <img src={card.image} className="w-11 h-11 rounded-full object-cover" />
-
         <div>
-          <p className="text-text-main text-sm">{card.name}</p>
-
-          <span className="text-xs text-text-muted">{card.handle}</span>
+          <p className="text-white text-sm">{card.name}</p>
+          <span className="text-white/60 text-xs">{card.handle}</span>
         </div>
       </div>
 
-      <p className="text-sm mt-4 text-text-muted leading-relaxed">
+      <p className="text-sm mt-4 text-white/70 leading-relaxed">
         Renting a luxury car has never been this smooth. The entire process felt
         premium from start to finish.
       </p>
 
-      <div className="flex justify-between mt-5 text-xs text-text-muted">
+      <div className="flex justify-between mt-5 text-xs text-white/50">
         <span>Posted on X</span>
-
         <span>{card.date}</span>
       </div>
     </div>
   );
 
   return (
-    <section className="py-28 px-6">
-      <div className="text-center">
-        <Title
-          title="Loved by Travelers Worldwide"
-          subTitle="Real stories from guests who chose us for their luxury journeys."
-        />
+    <section
+      className="py-16 px-6 -mt-[6px] relative"
+      style={{ background: goldBg }}
+    >
+      {/* TITLE */}
+      <div className="text-center mb-12 relative z-10">
+        <h2 className="text-3xl md:text-3xl font-semibold text-[#181f18]">
+          Loved by Travelers Worldwide
+        </h2>
+
+        <p className="text-white/90 mt-4 max-w-xl mx-auto">
+          Real stories from guests who chose us for their luxury journeys.
+        </p>
       </div>
 
-      {/* ROW 1 */}
-
-      <div className="relative overflow-hidden max-w-6xl mx-auto mt-16">
-        {/* LEFT FADE */}
-
+      {/* ROW */}
+      <div className="relative overflow-hidden max-w-7xl mx-auto z-10">
         <div
-          className="
-          absolute left-0 top-0 w-32 h-full
-          bg-gradient-to-r from-dark to-transparent
-          z-10
-          "
+          className="absolute left-0 top-0 w-20 h-full z-10"
+          style={{
+            background: "linear-gradient(to right, #c6a96b, transparent)",
+          }}
         />
 
         <div className="marquee">
@@ -96,40 +87,11 @@ const Testimonial = () => {
           ))}
         </div>
 
-        {/* RIGHT FADE */}
-
         <div
-          className="
-          absolute right-0 top-0 w-32 h-full
-          bg-gradient-to-l from-dark to-transparent
-          z-10
-          "
-        />
-      </div>
-
-      {/* ROW 2 */}
-
-      <div className="relative overflow-hidden max-w-6xl mx-auto mt-10">
-        <div
-          className="
-          absolute left-0 top-0 w-32 h-full
-          bg-gradient-to-r from-dark to-transparent
-          z-10
-          "
-        />
-
-        <div className="marquee reverse">
-          {[...cardsData, ...cardsData].map((card, i) => (
-            <Card key={i} card={card} />
-          ))}
-        </div>
-
-        <div
-          className="
-          absolute right-0 top-0 w-32 h-full
-          bg-gradient-to-l from-dark to-transparent
-          z-10
-          "
+          className="absolute right-0 top-0 w-20 h-full z-10"
+          style={{
+            background: "linear-gradient(to left, #c6a96b, transparent)",
+          }}
         />
       </div>
     </section>
