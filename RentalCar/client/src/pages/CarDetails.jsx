@@ -72,7 +72,11 @@ const CarDetails = () => {
 
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-8 text-gray-400 hover:text-[#c6a96b]"
+        className="flex items-center gap-2 mb-8
+          text-gray-400 hover:text-[#c6a96b]
+            border border-[#c6a96b]
+            px-4 py-2 rounded-lg
+            transition hover:text-[#c6a96b]"
       >
         <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-70" />
 

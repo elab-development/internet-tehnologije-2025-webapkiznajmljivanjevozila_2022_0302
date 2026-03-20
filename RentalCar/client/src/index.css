@@ -74,3 +74,7 @@ button:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: #c6a96b;
 }
+html,
+body {
+  overflow-x: hidden;
+}
