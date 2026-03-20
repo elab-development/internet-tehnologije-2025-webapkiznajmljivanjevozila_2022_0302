@@ -33,7 +33,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="relative min-h-screen md:flex flex-col items-center pt-0 max-w-13 md:max-w-60 w-full border-r border-border text-sm bg-dark text-text-main">
+    <div className="relative fixed min-height-screen md:flex flex-col items-center pt-0 max-w-13 md:max-w-60 w-full border-r border-border text-sm bg-dark text-text-main">
       {/* LOGO + GOLD BORDER */}
       <div className="w-full flex flex-col items-center pt-6 pb-4 border-b border-primary">
         <Link to="/">

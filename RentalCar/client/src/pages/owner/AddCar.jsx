@@ -62,7 +62,7 @@ const AddCar = () => {
   };
 
   return (
-    <div className="px-4 pt-6 md:px-10 flex-1 bg-white text-black">
+    <div className="px-4 pt-6 pb-20 md:px-10 flex-1 bg-white text-black">
       <div className="-mx-4 md:-mx-10 px-2 md:px-10 w-auto flex justify-end items-center mb-6 pt-1 pb-5 border-b border-primary">
         <p className="text-sm text-black">
           Welcome,{" "}

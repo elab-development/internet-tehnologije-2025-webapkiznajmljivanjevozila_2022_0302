@@ -31,11 +31,7 @@ const App = () => {
 
   return (
     <>
-      <div
-        className="min-h-screen
-        bg-[linear-gradient(180deg,#0f1115,#14161c,#111318)]
-        text-white"
-      >
+      <div className="flex flex-col min-h-screen bg-white text-white">
         <ScrollToTop />
         <ScrollToTopButton />
 
@@ -45,23 +41,29 @@ const App = () => {
 
         {showLogin && <Login />}
 
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/cars" element={<Cars />} />
-          <Route path="/car-details/:id" element={<CarDetails />} />
-          <Route path="/booking/:id/documents" element={<BookingDocuments />} />
-          <Route path="/my-bookings" element={<MyBookings />} />
-          <Route path="/countries" element={<Countries />} />
+        {/* KLJUČ */}
+        <div className="flex-1 flex flex-col">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/cars" element={<Cars />} />
+            <Route path="/car-details/:id" element={<CarDetails />} />
+            <Route
+              path="/booking/:id/documents"
+              element={<BookingDocuments />}
+            />
+            <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/countries" element={<Countries />} />
 
-          <Route path="/owner" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="add-car" element={<AddCar />} />
-            <Route path="manage-cars" element={<ManageCars />} />
-            <Route path="manage-bookings" element={<ManageBookings />} />
-          </Route>
-        </Routes>
+            <Route path="/owner" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="add-car" element={<AddCar />} />
+              <Route path="manage-cars" element={<ManageCars />} />
+              <Route path="manage-bookings" element={<ManageBookings />} />
+            </Route>
+          </Routes>
+        </div>
 
-        <Footer />
+        {!isOwnerPath && <Footer />}
       </div>
     </>
   );

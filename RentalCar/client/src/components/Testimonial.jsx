@@ -58,11 +58,22 @@ const Testimonial = () => {
 
   return (
     <section
-      className="py-16 px-6 -mt-[6px] relative"
-      style={{ background: goldBg }}
+      className="pt-10 pb-24 px-6 -mt-[6px] relative z-10 overflow-hidden"
+      style={{
+        background: goldBg,
+        clipPath: "polygon(0 0, 0 100%, 50% 86%, 100% 100%, 100% 0)",
+      }}
     >
+      {/*TEKSTURA */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.3]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(135deg, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 1px, transparent 1px, transparent 6px)",
+        }}
+      />
       {/* TITLE */}
-      <div className="text-center mb-12 relative z-10">
+      <div className="text-center mb-6 relative z-10">
         <h2 className="text-3xl md:text-3xl font-semibold text-[#181f18]">
           Loved by Travelers Worldwide
         </h2>

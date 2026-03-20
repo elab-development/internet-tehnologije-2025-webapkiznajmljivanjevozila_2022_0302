@@ -70,7 +70,7 @@ const MyBookings = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="px-6 md:px-16 lg:px-24 xl:px-32 pb-16 text-sm w-full min-h-screen bg-white text-black"
+          className="px-6 md:px-16 lg:px-24 xl:px-32 pb-36 text-sm w-full min-h-screen bg-white text-black"
         >
           <div className="max-w-[1200px] mx-auto">
             <div className="pt-10 pb-6 [&_h1]:text-primary [&_*]:text-gray-800 [&_p]:text-gray-600">

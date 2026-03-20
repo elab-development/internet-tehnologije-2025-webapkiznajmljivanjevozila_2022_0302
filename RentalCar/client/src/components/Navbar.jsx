@@ -69,7 +69,7 @@ const Navbar = () => {
       fixed top-0 left-0 w-full z-50
       backdrop-blur-xl
       bg-[#0f1115]/70
-      hover:bg-[#0c0f14] hover:backdrop-blur-0
+      hover:bg-[#14161c] hover:backdrop-blur-0
       border-b border-white/5
       shadow-[0_6px_18px_rgba(0,0,0,0.25)]
       px-6 md:px-16 lg:px-24 xl:px-32 py-4

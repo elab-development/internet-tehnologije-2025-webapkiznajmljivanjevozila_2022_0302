@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import Title from "../components/Title";
@@ -12,12 +11,6 @@ const Cars = () => {
 
   const [input, setInput] = useState("");
   const [cars, setCars] = useState([]);
-
-  const [searchParams] = useSearchParams();
-  const pickupLocation = searchParams.get("pickupLocation") || "";
-  const pickupDate = searchParams.get("pickupDate") || "";
-  const returnDate = searchParams.get("returnDate") || "";
-
   const [sortBy, setSortBy] = useState("relevant");
 
   const [types, setTypes] = useState({
@@ -38,14 +31,16 @@ const Cars = () => {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const carsPerPage = 12; // sada 4x3 grid
+  const carsPerPage = 8;
 
   const toggleType = (label) => {
     setTypes((prev) => ({ ...prev, [label]: !prev[label] }));
+    setCurrentPage(1);
   };
 
   const togglePrice = (key) => {
     setPriceRanges((prev) => ({ ...prev, [key]: !prev[key] }));
+    setCurrentPage(1);
   };
 
   const fetchCars = async () => {
@@ -103,10 +98,10 @@ const Cars = () => {
 
   const totalPages = Math.ceil(filteredCars.length / carsPerPage);
 
-  const startIndex = (currentPage - 1) * carsPerPage;
-  const endIndex = startIndex + carsPerPage;
-
-  const paginatedCars = filteredCars.slice(startIndex, endIndex);
+  const paginatedCars = filteredCars.slice(
+    (currentPage - 1) * carsPerPage,
+    currentPage * carsPerPage,
+  );
 
   const goToPage = (page) => {
     setCurrentPage(page);
@@ -114,131 +109,135 @@ const Cars = () => {
   };
 
   return (
-    <div className="pt-24 pb-20 px-6 md:px-12 lg:px-16 xl:px-20">
-      <div className="grid lg:grid-cols-[300px_1fr] gap-12">
-        {/* SIDEBAR */}
+    <div className="bg-white min-h-screen flex flex-col">
+      {/* SMANJEN DARK STRIP */}
+      <div className="h-[50px] md:h-[60px] bg-gradient-to-b from-[#0f1411] to-[#1a241a]" />
+      <div className="flex-1 pb-30 px-6 md:px-12 lg:px-16 xl:px-20">
+        <div className="grid lg:grid-cols-[280px_1fr]">
+          {/* SIDEBAR */}
+          <aside className="bg-white border-r border-gray-200 px-6 py-10 min-h-screen">
+            <div className="space-y-8 sticky top-24">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#1a1f1a] leading-tight">
+                Available Cars
+              </h2>
 
-        <aside className="space-y-8">
-          <Title
-            title="Available Cars"
-            subTitle="Browse our premium fleet"
-            align="left"
-          />
+              <p className="text-gray-500 text-sm mt-0">
+                Browse our collection
+              </p>
 
-          {/* SEARCH */}
+              {/* SEARCH */}
+              <div className="flex items-center border border-gray-300 px-5 h-12 rounded-full">
+                <img src={assets.search_icon} className="w-4 mr-3 opacity-70" />
+                <input
+                  value={input}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="Search cars..."
+                  className="w-full bg-transparent outline-none text-black placeholder:text-gray-400"
+                />
+              </div>
 
-          <div className="flex items-center border border-[#c6a96b]/40 px-5 h-12 rounded-full">
-            <img src={assets.search_icon} className="w-4 mr-3 opacity-70" />
+              {/* SORT */}
+              <div>
+                <h3 className="mb-3 font-semibold text-[#1a1f1a]">Sort By</h3>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full border border-gray-300 px-4 py-3 rounded-lg bg-white text-black"
+                >
+                  <option value="relevant">Relevant</option>
+                  <option value="highToLow">Price High to Low</option>
+                  <option value="lowToHigh">Price Low to High</option>
+                </select>
+              </div>
 
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Search cars..."
-              className="w-full bg-transparent outline-none text-white placeholder:text-gray-400"
-            />
-          </div>
+              {/* TYPE */}
+              <div>
+                <h3 className="mb-3 font-semibold text-[#1a1f1a]">Car Type</h3>
+                <div className="space-y-2 text-gray-700 text-sm">
+                  {Object.keys(types).map((t) => (
+                    <label key={t} className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={types[t]}
+                        onChange={() => toggleType(t)}
+                      />
+                      {t}
+                    </label>
+                  ))}
+                </div>
+              </div>
 
-          {/* SORT */}
-
-          <div className="bg-[#11151c] rounded-xl p-6">
-            <h3 className="text-white mb-4 font-semibold">Sort By</h3>
-
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full bg-[#11151c] border border-[#c6a96b]/30 px-4 py-3 rounded-lg text-white focus:outline-none focus:border-[#c6a96b]"
-            >
-              <option value="relevant">Relevant</option>
-              <option value="highToLow">Price High to Low</option>
-              <option value="lowToHigh">Price Low to High</option>
-            </select>
-          </div>
-
-          {/* TYPE */}
-
-          <div className="bg-[#11151c] rounded-xl p-6">
-            <h3 className="text-white mb-4 font-semibold">Car Type</h3>
-
-            <div className="space-y-3 text-gray-400">
-              {Object.keys(types).map((t) => (
-                <label key={t} className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={types[t]}
-                    onChange={() => toggleType(t)}
-                  />
-                  {t}
-                </label>
-              ))}
+              {/* PRICE */}
+              <div>
+                <h3 className="mb-3 font-semibold text-[#1a1f1a]">
+                  Price Range
+                </h3>
+                <div className="space-y-2 text-gray-700 text-sm">
+                  {Object.keys(priceRanges).map((p) => (
+                    <label key={p} className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={priceRanges[p]}
+                        onChange={() => togglePrice(p)}
+                      />
+                      {p}
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
+          </aside>
 
-          {/* PRICE */}
+          {/* CARS */}
+          <div className="px-6 md:px-10 lg:px-14 xl:px-20">
+            <div className="mb-10 mt-10"></div>
 
-          <div className="bg-[#11151c] rounded-xl p-6">
-            <h3 className="text-white mb-4 font-semibold">Price Range</h3>
-
-            <div className="space-y-3 text-gray-400">
-              {Object.keys(priceRanges).map((p) => (
-                <label key={p} className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={priceRanges[p]}
-                    onChange={() => togglePrice(p)}
-                  />
-                  {p}
-                </label>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-10">
+              {paginatedCars.length === 0 ? (
+                <p className="text-gray-500">No cars found.</p>
+              ) : (
+                paginatedCars.map((car) => <CarCard key={car._id} car={car} />)
+              )}
             </div>
-          </div>
-        </aside>
 
-        {/* CARS */}
+            {/* PAGINATION GOLD */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-3 mt-14">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => goToPage(currentPage - 1)}
+                  className="px-4 py-2 rounded border border-[#c6a96b] text-[#c6a96b] hover:bg-[#c6a96b]/10 disabled:opacity-30"
+                >
+                  Previous
+                </button>
 
-        <div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {paginatedCars.length === 0 ? (
-              <p className="text-gray-400">No cars found.</p>
-            ) : (
-              paginatedCars.map((car) => <CarCard key={car._id} car={car} />)
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => goToPage(i + 1)}
+                    className={`px-4 py-2 rounded border ${
+                      currentPage === i + 1
+                        ? "bg-[#c6a96b] text-black border-[#c6a96b]"
+                        : "border-[#c6a96b] text-[#c6a96b] hover:bg-[#c6a96b]/10"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => goToPage(currentPage + 1)}
+                  className="px-4 py-2 rounded border border-[#c6a96b] text-[#c6a96b] hover:bg-[#c6a96b]/10 disabled:opacity-30"
+                >
+                  Next
+                </button>
+              </div>
             )}
           </div>
-
-          {/* PAGINATION */}
-
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-3 mt-12 text-white">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => goToPage(currentPage - 1)}
-                className="px-4 py-2 border border-gray-700 rounded hover:bg-[#c6a96b]/20 disabled:opacity-30"
-              >
-                Previous
-              </button>
-
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => goToPage(i + 1)}
-                  className={`px-4 py-2 rounded border ${
-                    currentPage === i + 1
-                      ? "bg-[#c6a96b] text-black border-[#c6a96b]"
-                      : "border-gray-700 hover:bg-[#c6a96b]/20"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => goToPage(currentPage + 1)}
-                className="px-4 py-2 border border-gray-700 rounded hover:bg-[#c6a96b]/20 disabled:opacity-30"
-              >
-                Next
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

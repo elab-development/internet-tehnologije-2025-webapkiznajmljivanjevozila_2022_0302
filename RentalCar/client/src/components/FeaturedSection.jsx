@@ -1,5 +1,4 @@
 import React from "react";
-import Title from "./Title";
 import { assets } from "../assets/assets";
 import CarCard from "./CarCard";
 import { useNavigate } from "react-router-dom";
@@ -11,13 +10,23 @@ const FeaturedSection = () => {
   const { cars } = useAppContext();
 
   return (
-    <section className="relative w-full text-text-main pt-10 pb-16">
-      {/* GOLD AMBIENT LIGHT */}
+    <section
+      className="
+        relative w-full 
+        bg-white text-black
+        pt-20 pb-6
+        -mt-[80px]
+      "
+    >
+      {/* GOLD LIGHT */}
       <div className="absolute inset-0 pointer-events-none">
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[350px]
-          bg-[radial-gradient(circle_at_center,rgba(198,169,107,0.15),transparent_70%)]
-          blur-3xl"
+          className="
+            absolute top-0 left-1/2 -translate-x-1/2
+            w-[900px] h-[350px]
+            bg-[radial-gradient(circle_at_center,rgba(198,169,107,0.12),transparent_70%)]
+            blur-3xl
+          "
         />
       </div>
 
@@ -34,10 +43,14 @@ const FeaturedSection = () => {
           transition={{ duration: 0.8 }}
           className="text-center max-w-2xl"
         >
-          <Title
-            title="Featured Vehicles"
-            subTitle="Explore our collection of premium vehicles designed for comfort, elegance and performance."
-          />
+          <h2 className="text-4xl md:text-5xl font-semibold text-[#1a1f1a]">
+            Featured <span className="text-[#c6a96b]">Vehicles</span>
+          </h2>
+
+          <p className="text-[#1a1f1a]/70 mt-4">
+            Explore our collection of vehicles designed for comfort, elegance
+            and performance.
+          </p>
         </motion.div>
 
         {/* GRID */}
@@ -45,7 +58,7 @@ const FeaturedSection = () => {
           initial={{ opacity: 0, y: 60 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-10"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-16"
         >
           {cars.slice(0, 6).map((car) => (
             <motion.div
@@ -69,14 +82,15 @@ const FeaturedSection = () => {
             window.scrollTo(0, 0);
           }}
           className="
-          flex items-center justify-center gap-3
-          bg-[#c6a96b]
-          text-white
-          px-14 py-4
-          rounded-full
-          mt-10
-          hover:bg-[#d8b46b]
-          transition
+            flex items-center justify-center gap-3
+            bg-[#c6a96b]
+            text-white
+            px-14 py-4
+            rounded-full
+            mt-10
+            mb-0
+            hover:bg-[#d8b46b]
+            transition
           "
         >
           Explore all cars

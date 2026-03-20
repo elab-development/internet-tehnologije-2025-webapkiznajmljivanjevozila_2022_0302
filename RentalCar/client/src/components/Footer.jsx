@@ -5,14 +5,14 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <footer
-      className="relative bg-dark-soft pt-32 pb-10 overflow-hidden"
+      className="relative z-10 bg-dark-soft pt-32 pb-10 overflow-hidden -mt-25"
       style={{
-        clipPath: "polygon(0 0, 0 100%, 100% 100%, 100% 0, 50% 14%, 0 0)",
+        clipPath: "polygon(0 0, 0 100%, 100% 100%, 100% 0, 50% 15%, 0 0)",
       }}
     >
       {/* ZLATNA LINIJA */}
       <svg
-        className="absolute top-0 left-0 w-full h-24 pointer-events-none"
+        className="absolute z-20 top-0 left-0 w-full h-24 pointer-events-none"
         viewBox="0 0 100 20"
         preserveAspectRatio="none"
       >
@@ -20,20 +20,21 @@ const Footer = () => {
           d="M0,0 L50,12 L100,0"
           fill="none"
           stroke="#c6a96b"
-          strokeWidth="0.6"
+          strokeWidth="1"
           style={{
             filter: "drop-shadow(0 0 4px rgba(198,169,107,0.4))",
           }}
         />
       </svg>
 
-      {/* SUBTILNA TEKSTURA */}
+      {/* TEKSTURA */}
       <div
-        className="absolute inset-0 opacity-[2] pointer-events-none"
+        className="absolute inset-0 pointer-events-none opacity-[0.28]"
         style={{
-          backgroundImage:
-            "linear-gradient(135deg, #ffffff 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
+          backgroundImage: `
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 6px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 6px)
+    `,
         }}
       />
 

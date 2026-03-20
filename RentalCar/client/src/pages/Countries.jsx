@@ -23,7 +23,7 @@ const Countries = () => {
   return (
     <>
       <div className="h-16 w-full"></div>
-      <div className="bg-[#f5f5f7] min-h-screen px-6 md:px-16 lg:px-24 xl:px-32 pt-12 pb-20">
+      <div className="bg-[#f5f5f7] min-h-screen px-6 md:px-16 lg:px-24 xl:px-32 pt-12 pb-40">
         {/* HEADER */}
 
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10">

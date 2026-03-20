@@ -26,33 +26,56 @@ const CarCard = ({ car }) => {
         window.scrollTo(0, 0);
       }}
       className="
-      group
-      rounded-xl
-      overflow-hidden
-      backdrop-blur-lg
-      bg-white/5
-      border border-white/10
-      hover:border-[#c6a96b]
-      hover:shadow-[0_0_30px_rgba(198,169,107,0.25)]
-      transition
-      cursor-pointer
-      h-fit
+        group
+        rounded-2xl
+        overflow-hidden
+        bg-white
+        border border-[#c6a96b]/20
+        hover:border-[#c6a96b]/50
+        shadow-sm
+        hover:shadow-[0_15px_40px_rgba(0,0,0,0.15)]
+        hover:-translate-y-1
+        transition-all duration-300
+        cursor-pointer
+        flex flex-col
+        h-full
       "
     >
+      {/* IMAGE */}
       <div className="relative h-48 overflow-hidden">
         <img
           src={car.image}
           alt="car"
-          className="w-full h-full object-cover group-hover:scale-105 transition"
+          className="
+            w-full h-full object-cover
+            group-hover:scale-110
+            transition duration-500
+          "
         />
 
         {car.isAvailable && (
-          <p className="absolute top-4 left-4 px-3 py-1 text-xs rounded-full border border-[#c6a96b] bg-black/60 text-white">
+          <p
+            className="
+            absolute top-4 left-4
+            px-3 py-1 text-xs rounded-full
+            bg-white/90 text-[#1a1f1a]
+            border border-[#c6a96b]
+          "
+          >
             Available
           </p>
         )}
 
-        <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur border border-[#c6a96b] px-3 py-2 rounded-lg text-white">
+        <div
+          className="
+          absolute bottom-4 right-4
+          bg-[#1a1f1a]
+          text-white
+          px-3 py-2 rounded-lg
+          border border-[#c6a96b]
+          shadow-md
+        "
+        >
           <span className="font-semibold">
             {loading ? "..." : convertedPrice.toFixed(2)}
           </span>
@@ -63,40 +86,50 @@ const CarCard = ({ car }) => {
         </div>
       </div>
 
-      <div className="p-5">
-        <h3 className="text-lg font-medium text-white min-h-[28px]">
+      {/* CONTENT */}
+      <div className="p-4 flex flex-col flex-1">
+        {/* TITLE */}
+        <h3
+          className="
+          text-lg font-semibold text-[#1a1f1a]
+          line-clamp-2
+          min-h-[48px]
+        "
+        >
           {car.brand} {car.model}
         </h3>
 
         <div className="w-10 h-[2px] bg-[#c6a96b] mt-2 mb-3"></div>
 
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-600">
           {car.category} • {car.year}
         </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-y-3 text-gray-400 text-sm">
+        {/* ATTRIBUTES */}
+        <div className="mt-4 flex flex-col gap-2 text-gray-600 text-sm">
           <div className="flex items-center">
-            <img src={assets.users_icon} className="h-4 mr-2" />
+            <img src={assets.users_icon} className="h-4 mr-2 opacity-70" />
             {car.seating_capacity} Seats
           </div>
 
           <div className="flex items-center">
-            <img src={assets.fuel_icon} className="h-4 mr-2" />
+            <img src={assets.fuel_icon} className="h-4 mr-2 opacity-70" />
             {car.fuel_type}
           </div>
 
           <div className="flex items-center">
-            <img src={assets.car_icon} className="h-4 mr-2" />
+            <img src={assets.car_icon} className="h-4 mr-2 opacity-70" />
             {car.transmission}
           </div>
 
           <div className="flex items-center">
-            <img src={assets.location_icon} className="h-4 mr-2" />
+            <img src={assets.location_icon} className="h-4 mr-2 opacity-70" />
             {car.location}
           </div>
         </div>
 
-        <div className="mt-4">
+        {/* COUNTRY */}
+        <div className="mt-auto pt-2">
           <CountryBadge country={country} />
         </div>
       </div>
