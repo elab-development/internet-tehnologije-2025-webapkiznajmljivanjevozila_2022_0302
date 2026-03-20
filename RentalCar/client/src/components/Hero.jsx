@@ -1,5 +1,5 @@
 import React from "react";
-import { assets, cityList } from "../assets/assets";
+import { assets } from "../assets/assets";
 import { motion } from "motion/react";
 
 const Hero = ({
@@ -10,11 +10,10 @@ const Hero = ({
   returnDate,
   setReturnDate,
   handleSearch,
+  cities, // 🔥 DODATO
 }) => {
   return (
     <section className="relative pt-36 pb-28 px-6 overflow-visible">
-      {/* GOLD GLOW */}
-
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="
@@ -27,8 +26,6 @@ const Hero = ({
       </div>
 
       <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative">
-        {/* LEFT */}
-
         <div className="relative z-10">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -78,17 +75,14 @@ const Hero = ({
               required
               value={pickupLocation}
               onChange={(e) => setPickupLocation(e.target.value)}
-              className="
-              px-4 py-3
-              rounded-md
-              bg-white
-              text-black
-              "
+              className="px-4 py-3 rounded-md bg-white text-black"
             >
               <option value="">Pickup location</option>
 
-              {cityList.map((city) => (
-                <option key={city}>{city}</option>
+              {cities?.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
               ))}
             </select>
 
@@ -98,12 +92,7 @@ const Hero = ({
               type="date"
               value={pickupDate}
               onChange={(e) => setPickupDate(e.target.value)}
-              className="
-              px-4 py-3
-              rounded-md
-              bg-white
-              text-black
-              "
+              className="px-4 py-3 rounded-md bg-white text-black"
             />
 
             {/* RETURN DATE */}
@@ -112,55 +101,25 @@ const Hero = ({
               type="date"
               value={returnDate}
               onChange={(e) => setReturnDate(e.target.value)}
-              className="
-              px-4 py-3
-              rounded-md
-              bg-white
-              text-black
-              "
+              className="px-4 py-3 rounded-md bg-white text-black"
             />
 
-            {/* SEARCH BUTTON */}
-
-            <button
-              className="
-              col-span-3
-              bg-[#c6a96b]
-              text-white
-              py-3
-              rounded-full
-              hover:bg-[#d8b46b]
-              transition
-              "
-            >
+            <button className="col-span-3 bg-[#c6a96b] text-white py-3 rounded-full hover:bg-[#d8b46b] transition">
               Search vehicles
             </button>
           </motion.form>
         </div>
 
-        {/* RIGHT */}
-
         <motion.div
           initial={{ opacity: 0, x: 60 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.9 }}
-          className="
-          relative
-          md:-ml-20
-          z-10
-          "
+          className="relative md:-ml-20 z-10"
         >
           <img
             src={assets.main_car}
             alt="car"
-            className="
-            w-full
-            max-w-[650px]
-            ml-auto
-            drop-shadow-[0_25px_45px_rgba(0,0,0,0.5)]
-            relative
-            md:-mb-20
-            "
+            className="w-full max-w-[650px] ml-auto drop-shadow-[0_25px_45px_rgba(0,0,0,0.5)] relative md:-mb-20"
           />
         </motion.div>
       </div>

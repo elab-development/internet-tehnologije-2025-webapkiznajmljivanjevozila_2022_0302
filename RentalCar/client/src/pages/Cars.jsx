@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { useSearchParams } from "react-router-dom";
 
 import Title from "../components/Title";
 import CarCard from "../components/CarCard";
@@ -9,9 +10,22 @@ import { useAppContext } from "../context/useAppContext.js";
 const Cars = () => {
   const { axios } = useAppContext();
 
+  const [searchParams] = useSearchParams();
+
   const [input, setInput] = useState("");
   const [cars, setCars] = useState([]);
   const [sortBy, setSortBy] = useState("relevant");
+
+  // Hero → Cars
+  const [locationFilter, setLocationFilter] = useState(
+    searchParams.get("location") || "",
+  );
+  const [pickupFilter, setPickupFilter] = useState(
+    searchParams.get("pickup") || "",
+  );
+  const [returnFilter, setReturnFilter] = useState(
+    searchParams.get("return") || "",
+  );
 
   const [types, setTypes] = useState({
     Coupe: false,
@@ -56,22 +70,35 @@ const Cars = () => {
     fetchCars();
   }, []);
 
+  // 🔥 DODATO: gradovi iz baze
+  const availableCities = useMemo(() => {
+    return [...new Set((cars || []).map((c) => c.location).filter(Boolean))];
+  }, [cars]);
+
   const filteredCars = useMemo(() => {
     const q = input.toLowerCase();
 
     let list = (cars || []).filter((car) => {
       const match =
         !q ||
-        car.brand.toLowerCase().includes(q) ||
-        car.model.toLowerCase().includes(q);
+        car.brand?.toLowerCase().includes(q) ||
+        car.model?.toLowerCase().includes(q);
 
       if (!match) return false;
 
+      // LOCATION
+      if (
+        locationFilter &&
+        car.location?.toLowerCase() !== locationFilter.toLowerCase()
+      )
+        return false;
+
+      // TYPE
       const anyType = Object.values(types).some(Boolean);
       if (anyType && !types[car.category]) return false;
 
+      // PRICE
       const anyPrice = Object.values(priceRanges).some(Boolean);
-
       if (anyPrice) {
         const p = car.pricePerDay;
 
@@ -94,7 +121,7 @@ const Cars = () => {
       list.sort((a, b) => a.pricePerDay - b.pricePerDay);
 
     return list;
-  }, [cars, input, types, priceRanges, sortBy]);
+  }, [cars, input, types, priceRanges, sortBy, locationFilter]);
 
   const totalPages = Math.ceil(filteredCars.length / carsPerPage);
 
@@ -110,12 +137,12 @@ const Cars = () => {
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
-      {/* SMANJEN DARK STRIP */}
       <div className="h-[50px] md:h-[60px] bg-gradient-to-b from-[#0f1411] to-[#1a241a]" />
+
       <div className="flex-1 pb-30 px-6 md:px-12 lg:px-16 xl:px-20">
         <div className="grid lg:grid-cols-[280px_1fr]">
           {/* SIDEBAR */}
-          <aside className="bg-white border-r border-gray-200 px-6 py-10 min-h-screen">
+          <aside className="bg-white text-black border-r border-gray-200 px-6 py-10 min-h-screen">
             <div className="space-y-8 sticky top-24">
               <h2 className="text-3xl md:text-4xl font-bold text-[#1a1f1a] leading-tight">
                 Available Cars
@@ -136,6 +163,42 @@ const Cars = () => {
                   }}
                   placeholder="Search cars..."
                   className="w-full bg-transparent outline-none text-black placeholder:text-gray-400"
+                />
+              </div>
+
+              {/* LOCATION */}
+              <div>
+                <h3 className="mb-3 font-semibold text-[#1a1f1a]">Location</h3>
+                <select
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  className="w-full border border-gray-300 px-4 py-3 rounded-lg bg-white text-black"
+                >
+                  <option value="">All locations</option>
+                  {availableCities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* DATES */}
+              <div>
+                <h3 className="mb-3 font-semibold text-[#1a1f1a]">Dates</h3>
+
+                <input
+                  type="date"
+                  value={pickupFilter}
+                  onChange={(e) => setPickupFilter(e.target.value)}
+                  className="w-full border border-gray-300 px-4 py-3 rounded-lg mb-2"
+                />
+
+                <input
+                  type="date"
+                  value={returnFilter}
+                  onChange={(e) => setReturnFilter(e.target.value)}
+                  className="w-full border border-gray-300 px-4 py-3 rounded-lg"
                 />
               </div>
 
@@ -203,7 +266,7 @@ const Cars = () => {
               )}
             </div>
 
-            {/* PAGINATION GOLD */}
+            {/* PAGINATION */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-3 mt-14">
                 <button
