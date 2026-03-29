@@ -28,34 +28,12 @@ const Hero = ({
         />
       </div>
 
-      {/* GOLD LINE SVG */}
-      <svg
-        className="absolute bottom-0 left-0 w-full z-5 pointer-events-none translate-y-[-80px] scale-y-[1.08] origin-bottom"
-        viewBox="0 0 1000 200"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M0,200 L500,164 L1000,200"
-          fill="none"
-          stroke="#c6a96b"
-          strokeWidth="1.5"
-        />
-      </svg>
-
       {/* glow */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div
-          className="
-          absolute right-24 top-20
-          w-[700px] h-[450px]
-          bg-[radial-gradient(circle_at_center,rgba(198,169,107,0.25),transparent_70%)]
-          blur-3xl
-          "
-        />
+        <div className="absolute right-24 top-20 w-[700px] h-[450px] bg-[radial-gradient(circle_at_center,rgba(198,169,107,0.25),transparent_70%)] blur-3xl" />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
-        {/* TEXT */}
         <div className="relative z-20">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -77,26 +55,12 @@ const Hero = ({
             elegance.
           </motion.p>
 
-          {/* SEARCH */}
           <motion.form
             onSubmit={handleSearch}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="
-            mt-12
-            grid
-            grid-cols-3
-            gap-3
-            max-w-xl
-            backdrop-blur-2xl
-            bg-white/10
-            border border-white/20
-            p-5
-            rounded-2xl
-            relative
-            z-30
-            "
+            className="mt-12 grid grid-cols-3 gap-3 max-w-xl backdrop-blur-2xl bg-white/10 border border-white/20 p-5 rounded-2xl relative z-30"
           >
             <select
               required
@@ -132,7 +96,6 @@ const Hero = ({
           </motion.form>
         </div>
 
-        {/* AUTO */}
         <motion.div
           initial={{ opacity: 0, x: 60 }}
           animate={{ opacity: 1, x: 0 }}
@@ -142,15 +105,7 @@ const Hero = ({
           <img
             src={assets.main_car}
             alt="car"
-            className="
-  w-full
-  max-w-[690px]
-  mr-auto
-  translate-x-[-6px] md:translate-x-[-18px]
-  scale-100 md:scale-115
-  origin-bottom-left
-  relative md:-mb-20
-"
+            className="w-full max-w-[690px] mr-auto translate-x-[-6px] md:translate-x-[-18px] scale-100 md:scale-115 origin-bottom-left relative md:-mb-20"
           />
         </motion.div>
       </div>

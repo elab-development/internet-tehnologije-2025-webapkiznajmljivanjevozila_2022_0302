@@ -179,7 +179,7 @@ const Navbar = () => {
 
       {/* MOBILE MENU BUTTON */}
       <button
-        className="sm:hidden cursor-pointer"
+        className="sm:hidden cursor-pointer outline-none focus:outline-none"
         aria-label="Menu"
         onClick={() => setOpen(!open)}
       >
