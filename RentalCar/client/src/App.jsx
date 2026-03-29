@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
 import Cars from "./pages/Cars";
@@ -41,20 +42,41 @@ const App = () => {
 
         {showLogin && <Login />}
 
-        {/* KLJUČ */}
         <div className="flex-1 flex flex-col">
           <Routes>
+            {/* Javne rute */}
             <Route path="/" element={<Home />} />
             <Route path="/cars" element={<Cars />} />
             <Route path="/car-details/:id" element={<CarDetails />} />
-            <Route
-              path="/booking/:id/documents"
-              element={<BookingDocuments />}
-            />
-            <Route path="/my-bookings" element={<MyBookings />} />
             <Route path="/countries" element={<Countries />} />
 
-            <Route path="/owner" element={<Layout />}>
+            {/* Zaštićene rute — mora biti ulogovan */}
+            <Route
+              path="/my-bookings"
+              element={
+                <ProtectedRoute requireAuth>
+                  <MyBookings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/booking/:id/documents"
+              element={
+                <ProtectedRoute requireAuth>
+                  <BookingDocuments />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Owner rute — mora biti owner */}
+            <Route
+              path="/owner"
+              element={
+                <ProtectedRoute requireAuth requireOwner>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<Dashboard />} />
               <Route path="add-car" element={<AddCar />} />
               <Route path="manage-cars" element={<ManageCars />} />
