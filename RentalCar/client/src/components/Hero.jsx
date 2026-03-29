@@ -30,12 +30,12 @@ const Hero = ({
 
       {/* GOLD LINE SVG */}
       <svg
-        className="absolute bottom-0 left-0 w-full z-5 pointer-events-none translate-y-[-80px]"
+        className="absolute bottom-0 left-0 w-full z-5 pointer-events-none translate-y-[-80px] scale-y-[1.08] origin-bottom"
         viewBox="0 0 1000 200"
         preserveAspectRatio="none"
       >
         <path
-          d="M0,200 L500,171 L1000,200"
+          d="M0,200 L500,164 L1000,200"
           fill="none"
           stroke="#c6a96b"
           strokeWidth="1.5"
@@ -143,13 +143,14 @@ const Hero = ({
             src={assets.main_car}
             alt="car"
             className="
-              w-full
-              max-w-[750px]
-              ml-auto
-              scale-110 md:scale-125
-              origin-bottom-left
-              relative md:-mb-20
-            "
+  w-full
+  max-w-[690px]
+  mr-auto
+  translate-x-[-6px] md:translate-x-[-18px]
+  scale-100 md:scale-115
+  origin-bottom-left
+  relative md:-mb-20
+"
           />
         </motion.div>
       </div>

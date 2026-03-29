@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { assets } from "../assets/assets";
 import Loader from "../components/Loader";
@@ -13,6 +13,7 @@ const CarDetails = () => {
   const { id } = useParams();
   const {
     cars,
+    axios,
     pickupDate,
     setPickupDate,
     returnDate,
@@ -22,11 +23,30 @@ const CarDetails = () => {
   } = useAppContext();
 
   const navigate = useNavigate();
+  const [fetchedCar, setFetchedCar] = useState(null);
+  const [fetchError, setFetchError] = useState(false);
 
-  const car = useMemo(() => {
+  const carFromContext = useMemo(() => {
     if (!Array.isArray(cars)) return null;
     return cars.find((c) => c?._id === id) || null;
   }, [cars, id]);
+
+  // Ako auto nije u listi (npr. direktan link ili refresh), fetchuj ga po ID-u
+  useEffect(() => {
+    if (!carFromContext) {
+      setFetchedCar(null);
+      setFetchError(false);
+      axios
+        .get(`/api/cars/${id}`)
+        .then(({ data }) => {
+          if (data?.success) setFetchedCar(data.car);
+          else setFetchError(true);
+        })
+        .catch(() => setFetchError(true));
+    }
+  }, [id, carFromContext]);
+
+  const car = carFromContext || fetchedCar;
 
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
   const { value: convertedPrice, loading } = useConvertedPrice(
@@ -63,6 +83,19 @@ const CarDetails = () => {
 
     navigate(`/booking/${id}/documents`);
   };
+
+  if (fetchError)
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-[#0c0f14] text-white gap-4">
+        <p className="text-xl">Car not found.</p>
+        <button
+          onClick={() => navigate("/cars")}
+          className="px-4 py-2 border border-[#c6a96b] text-[#c6a96b] rounded-lg hover:bg-[#c6a96b]/10 transition"
+        >
+          Back to all cars
+        </button>
+      </div>
+    );
 
   if (!car) return <Loader />;
 
