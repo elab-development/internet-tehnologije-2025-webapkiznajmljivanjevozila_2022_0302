@@ -28,15 +28,22 @@ export const canAccessBooking = async (req, res, next) => {
       return next();
     }
 
-    if (booking.user?.toString() === userId) {
+    if (role === "user" && booking.user?.toString() === userId) {
       req.booking = booking;
       return next();
     }
 
-    const car = await Car.findById(booking.car);
-    if (car && car.owner?.toString() === userId) {
-      req.booking = booking;
-      return next();
+    if (role === "owner") {
+      if (booking.owner?.toString() === userId) {
+        req.booking = booking;
+        return next();
+      }
+
+      const car = await Car.findById(booking.car);
+      if (car && car.owner?.toString() === userId) {
+        req.booking = booking;
+        return next();
+      }
     }
 
     return res

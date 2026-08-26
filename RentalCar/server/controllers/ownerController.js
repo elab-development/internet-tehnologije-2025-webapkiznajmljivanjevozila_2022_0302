@@ -4,6 +4,8 @@ import Car from "../models/Car.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
 
+import { getExtensionFromMime } from "../middleware/multer.js";
+
 // API to change role of user
 export const changeRoleToOwner = async (req, res) => {
   try {
@@ -45,11 +47,20 @@ export const addCar = async (req, res) => {
     }
 
     // upload na ImageKit
-    const uploadRes = await imagekit.upload({
-      file: req.file.buffer.toString("base64"),
-      fileName: `car_${Date.now()}.png`,
-      folder: "/cars",
-    });
+        if (!imagekit) {
+          return res.status(503).json({
+            success: false,
+            message: "Upload service is currently unavailable",
+          });
+        }
+
+        const extension = getExtensionFromMime(req.file.mimetype) || ".jpg";
+
+        const uploadRes = await imagekit.upload({
+          file: req.file.buffer.toString("base64"),
+          fileName: `car_${_id}_${Date.now()}${extension}`,
+          folder: "/cars",
+        });
 
     // optimizovana slika
     const optimizedImageUrl = imagekit.url({
@@ -210,11 +221,20 @@ export const updateUserImage = async (req, res) => {
       });
     }
 
-    const uploadRes = await imagekit.upload({
-      file: req.file.buffer.toString("base64"),
-      fileName: `user_${_id}_${Date.now()}.png`,
-      folder: "/users",
-    });
+        if (!imagekit) {
+          return res.status(503).json({
+            success: false,
+            message: "Upload service is currently unavailable",
+          });
+        }
+
+        const extension = getExtensionFromMime(req.file.mimetype) || ".jpg";
+
+        const uploadRes = await imagekit.upload({
+          file: req.file.buffer.toString("base64"),
+          fileName: `user_${_id}_${Date.now()}${extension}`,
+          folder: "/users",
+        });
 
     const optimizedImageUrl = imagekit.url({
       src: uploadRes.url,

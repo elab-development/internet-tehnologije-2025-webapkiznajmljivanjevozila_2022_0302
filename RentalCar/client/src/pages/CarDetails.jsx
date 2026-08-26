@@ -13,6 +13,7 @@ const CarDetails = () => {
   const { id } = useParams();
   const {
     cars,
+    axios,
     pickupDate,
     setPickupDate,
     returnDate,
@@ -22,11 +23,30 @@ const CarDetails = () => {
   } = useAppContext();
 
   const navigate = useNavigate();
+  const [fetchedCar, setFetchedCar] = useState(null);
+  const [fetchError, setFetchError] = useState(false);
 
-  const car = useMemo(() => {
+  const carFromContext = useMemo(() => {
     if (!Array.isArray(cars)) return null;
     return cars.find((c) => c?._id === id) || null;
   }, [cars, id]);
+
+  // Ako auto nije u listi (npr. direktan link ili refresh), fetchuj ga po ID-u
+  useEffect(() => {
+    if (!carFromContext) {
+      setFetchedCar(null);
+      setFetchError(false);
+      axios
+        .get(`/api/cars/${id}`)
+        .then(({ data }) => {
+          if (data?.success) setFetchedCar(data.car);
+          else setFetchError(true);
+        })
+        .catch(() => setFetchError(true));
+    }
+  }, [id, carFromContext]);
+
+  const car = carFromContext || fetchedCar;
 
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
   const { value: convertedPrice, loading } = useConvertedPrice(
@@ -50,6 +70,7 @@ const CarDetails = () => {
       toast.error("Please select pickup and return date.");
       return;
     }
+
     if (returnDate < pickupDate) {
       toast.error("Return date cannot be before pickup date.");
       return;
@@ -63,19 +84,43 @@ const CarDetails = () => {
     navigate(`/booking/${id}/documents`);
   };
 
+  if (fetchError)
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-[#0c0f14] text-white gap-4">
+        <p className="text-xl">Car not found.</p>
+        <button
+          onClick={() => navigate("/cars")}
+          className="px-4 py-2 border border-[#c6a96b] text-[#c6a96b] rounded-lg hover:bg-[#c6a96b]/10 transition"
+        >
+          Back to all cars
+        </button>
+      </div>
+    );
+
   if (!car) return <Loader />;
 
   return (
-    <div className="px-6 md:px-16 lg:px-24 xl:px-32 mt-16">
+    <div className="px-6 md:px-16 lg:px-24 xl:px-32 pt-32 pb-60 bg-[#0c0f14] h-full">
+      {/* BACK BUTTON */}
+
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-6 text-gray-500 cursor-pointer"
+        className="flex items-center gap-2 mb-8
+          text-gray-400 hover:text-[#c6a96b]
+            border border-[#c6a96b]
+            px-4 py-2 rounded-lg
+            transition hover:text-[#c6a96b]"
       >
-        <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-65" />
-        Back to all cars
+        <img src={assets.arrow_icon} alt="" className="rotate-180 opacity-70" />
+
+        <span className="border-b border-transparent hover:border-[#c6a96b]">
+          Back to all cars
+        </span>
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12">
+        {/* LEFT SECTION */}
+
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -88,24 +133,26 @@ const CarDetails = () => {
             transition={{ duration: 0.5 }}
             src={car.image}
             alt=""
-            className="w-full h-auto object-cover rounded-xl mb-6 shadow-md"
+            className="w-full object-cover rounded-xl mb-6 shadow-xl"
           />
 
-          <div className="flex items-start justify-between gap-4 mb-2">
+          <div className="flex items-start justify-between gap-4 mb-3">
             <div>
-              <h1 className="text-3xl font-bold">
+              <h1 className="text-3xl font-bold text-white">
                 {car.brand} {car.model}
               </h1>
-              <p className="text-gray-500 text-lg">
+
+              <p className="text-gray-400 text-lg">
                 {car.category} • {car.year}
               </p>
             </div>
 
-            {/* ✅ RESTCountries VIDLJIVO */}
             <CountryBadge country={country} />
           </div>
 
-          <hr className="border-borderColor my-6" />
+          <hr className="border-white/10 my-6" />
+
+          {/* CAR SPECS */}
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
@@ -118,74 +165,89 @@ const CarDetails = () => {
               { icon: assets.location_icon, text: car.location },
             ].map(({ icon, text }) => (
               <motion.div
+                key={text}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                key={text}
-                className="flex flex-col items-center bg-light p-4 rounded-lg"
+                className="flex flex-col items-center bg-[#11151c] border border-[#c6a96b]/20 p-4 rounded-lg"
               >
-                <img src={icon} alt="" className="h-5 mb-2" />
-                {text}
+                <img src={icon} alt="" className="h-5 mb-2 opacity-90" />
+                <span className="text-gray-300 text-sm">{text}</span>
               </motion.div>
             ))}
           </div>
 
-          <div className="mt-6">
-            <h1 className="text-xl font-medium mb-3">Description</h1>
-            <p className="text-gray-500">{car.description}</p>
+          {/* DESCRIPTION */}
+
+          <div className="mt-8">
+            <h1 className="text-xl font-medium mb-3 text-white">Description</h1>
+
+            <p className="text-gray-400 leading-relaxed">{car.description}</p>
           </div>
         </motion.div>
 
-        {/* BOOKING */}
+        {/* BOOKING PANEL */}
+
         <motion.form
+          onSubmit={handleSubmit}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          onSubmit={handleSubmit}
-          className="shadow-lg h-max sticky top-18 rounded-xl p-6 space-y-6 text-gray-500"
+          className="sticky top-24 h-max rounded-xl p-7 space-y-6
+          backdrop-blur-md bg-white/5 border border-white/10 shadow-2xl"
         >
-          {/* ✅ ExchangeRate VIDLJIVO */}
-          <p className="flex items-center justify-between text-2xl text-gray-800 font-semibold">
+          {/* PRICE */}
+
+          <p className="flex items-center justify-between text-2xl font-semibold text-white">
             {loading ? "..." : convertedPrice.toFixed(2)} {selectedCurrency}
-            <span className="text-base text-gray-400 font-normal">per day</span>
+            <span className="text-base text-white/70 font-normal">per day</span>
           </p>
 
-          <hr className="border-borderColor my-6" />
+          <hr className="border-white/10" />
+
+          {/* PICKUP DATE */}
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="pickup-date">Pickup Date</label>
+            <label className="text-gray-300">Pickup Date</label>
+
             <input
+              type="date"
               value={pickupDate}
-              onChange={(e) => setPickupDate(e.target.value)}
-              type="date"
-              id="pickup-date"
-              required
               min={today}
-              className="border border-borderColor px-3 py-2 rounded-lg"
+              required
+              onChange={(e) => setPickupDate(e.target.value)}
+              className="bg-[#0c0f14] border border-white/10 px-3 py-2 rounded-lg text-white
+              focus:outline-none focus:border-[#c6a96b]"
             />
           </div>
 
+          {/* RETURN DATE */}
+
           <div className="flex flex-col gap-2">
-            <label htmlFor="return-date">Return Date</label>
+            <label className="text-gray-300">Return Date</label>
+
             <input
-              value={returnDate}
-              onChange={(e) => setReturnDate(e.target.value)}
               type="date"
-              id="return-date"
-              required
+              value={returnDate}
               min={pickupDate || today}
-              className="border border-borderColor px-3 py-2 rounded-lg"
+              required
+              onChange={(e) => setReturnDate(e.target.value)}
+              className="bg-[#0c0f14] border border-white/10 px-3 py-2 rounded-lg text-white
+              focus:outline-none focus:border-[#c6a96b]"
             />
           </div>
+
+          {/* BOOK BUTTON */}
 
           <button
             type="submit"
-            className="w-full bg-primary hover:bg-primary-dull transition-all py-3 font-medium text-white rounded-xl cursor-pointer"
+            className="w-full bg-[#c6a96b] hover:bg-[#b89a5f] transition-all py-3
+            font-semibold text-black rounded-xl cursor-pointer"
           >
             Book Now
           </button>
 
-          <p className="text-center text-sm">
+          <p className="text-center text-sm text-gray-400">
             No credit card required to reserve
           </p>
         </motion.form>

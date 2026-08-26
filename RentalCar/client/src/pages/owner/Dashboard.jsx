@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { Chart } from "react-google-charts";
 
 const Dashboard = () => {
-  const { axios, isOwner, currency } = useAppContext();
+  const { axios, isOwner, currency, user } = useAppContext();
 
   const [data, setData] = useState({
     totalCars: 0,
@@ -17,7 +17,6 @@ const Dashboard = () => {
     monthlyRevenue: 0,
   });
 
-  // stats za grafikone
   const [stats, setStats] = useState({
     year: new Date().getFullYear(),
     bookingsMonthly: Array(12).fill(0),
@@ -65,7 +64,6 @@ const Dashboard = () => {
     }
   };
 
-  // povuci stats za grafikone
   const fetchStats = async () => {
     const year = new Date().getFullYear();
     const res = await axios.get(`/api/owner/stats?year=${year}`);
@@ -101,10 +99,8 @@ const Dashboard = () => {
       }
     };
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOwner]);
 
-  // chart data (Google Charts format)
   const monthNames = useMemo(
     () => [
       "Jan",
@@ -176,22 +172,33 @@ const Dashboard = () => {
   }, [stats.topCars]);
 
   return (
-    <div className="px-4 pt-10 md:px-10 flex-1">
-      <Title
-        title="Admin Dashboard"
-        subTitle="Monitor overall platform performance including total cars, bookings, revenue, and recent activities"
-      />
-
+    <div className="px-4 pt-6 md:px-10 flex-1 bg-white text-black">
+      {/* TOP BAR */}
+      <div className="-mx-4 md:-mx-10 px-4 md:px-10 w-auto flex justify-end items-center mb-6 pt-1 pb-5 border-b border-primary">
+        <p className="text-sm text-black">
+          Welcome,{" "}
+          <span className="text-primary font-semibold">
+            {user?.name || "Owner"}
+          </span>
+        </p>
+      </div>
+      <div className="pt-0 pb-6 [&_h1]:text-primary [&_*]:text-gray-800 [&_p]:text-gray-600">
+        <Title
+          title="Admin Dashboard"
+          subTitle="Monitor overall platform performance including total cars, bookings, revenue, and recent activities"
+          className="text-primary"
+        />
+      </div>
       {/* KPI Cards */}
       <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-8 max-w-3xl">
         {dashboardCards.map((card, index) => (
           <div
             key={index}
-            className="flex gap-2 items-center justify-between p-4 rounded-md border border-borderColor"
+            className="flex gap-2 items-center justify-between p-4 rounded-md border border-gray-200 bg-white shadow-md"
           >
             <div>
-              <h1 className="text-xs text-gray-500">{card.title}</h1>
-              <p className="text-lg font-semibold">{card.value}</p>
+              <h1 className="text-xs text-gray-600">{card.title}</h1>
+              <p className="text-lg font-semibold text-black">{card.value}</p>
             </div>
 
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
@@ -203,10 +210,9 @@ const Dashboard = () => {
 
       {/* Recent + Monthly */}
       <div className="flex flex-wrap items-start gap-6 mb-8 w-full">
-        {/* recent booking */}
-        <div className="p-4 md:p-6 border border-borderColor rounded-md max-w-lg w-full">
-          <h1 className="text-lg font-medium">Recent Bookings</h1>
-          <p className="text-gray-500">Latest customer bookings</p>
+        <div className="p-4 md:p-6 border border-gray-200 rounded-md max-w-lg w-full bg-white shadow-md">
+          <h1 className="text-lg font-medium text-primary">Recent Bookings</h1>
+          <p className="text-gray-600">Latest customer bookings</p>
 
           {(data.recentBookings || []).filter(Boolean).map((booking, index) => (
             <div key={index} className="mt-4 flex items-center justify-between">
@@ -220,37 +226,32 @@ const Dashboard = () => {
                 </div>
 
                 <div>
-                  <p>
+                  <p className="text-black">
                     {booking?.car?.brand || "Deleted car"}{" "}
                     {booking?.car?.model || ""}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-600">
                     {booking?.createdAt ? booking.createdAt.split("T")[0] : ""}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 font-medium">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-600">
                   {currency}
                   {booking?.price ?? 0}
                 </p>
-                <p className="px-3 py-0.5 border border-borderColor rounded-full text-sm">
+                <p className="px-3 py-0.5 border border-gray-300 rounded-full text-sm text-black">
                   {booking?.status || "unknown"}
                 </p>
               </div>
             </div>
           ))}
-
-          {(data.recentBookings || []).length === 0 && (
-            <p className="text-gray-500 mt-4">No bookings yet.</p>
-          )}
         </div>
 
-        {/* monthly revenue */}
-        <div className="p-4 md:p-6 mb-6 border border-borderColor rounded-md w-full md:max-w-xs">
-          <h1 className="text-lg font-medium">Monthly Revenue</h1>
-          <p className="text-gray-500">Revenue for current month</p>
+        <div className="p-4 md:p-6 mb-6 border border-gray-200 rounded-md w-full md:max-w-xs bg-white shadow-md">
+          <h1 className="text-lg font-medium text-primary">Monthly Revenue</h1>
+          <p className="text-gray-600">Revenue for current month</p>
           <p className="text-3xl mt-6 font-semibold text-primary">
             {currency}
             {data.monthlyRevenue}
@@ -258,68 +259,64 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/*  Charts section */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-        <div className="p-4 md:p-6 border border-borderColor rounded-md">
-          <h2 className="text-lg font-medium">Bookings by Month</h2>
-          <p className="text-gray-500 mb-4">
-            Number of created bookings per month
-          </p>
-
+        <div className="p-4 md:p-6 border border-gray-200 rounded-md bg-white shadow-md">
+          <h2 className="text-lg font-medium text-primary">
+            Bookings by Month
+          </h2>
           <Chart
             chartType="LineChart"
             width="100%"
             height="320px"
             data={bookingsLineData}
             options={{
-              legend: { position: "bottom" },
-              curveType: "function",
+              backgroundColor: "transparent",
+              colors: ["#C6A96B"],
             }}
           />
         </div>
 
-        <div className="p-4 md:p-6 border border-borderColor rounded-md">
-          <h2 className="text-lg font-medium">Revenue by Month</h2>
-          <p className="text-gray-500 mb-4">Sum of confirmed bookings</p>
-
+        <div className="p-4 md:p-6 border border-gray-200 rounded-md bg-white shadow-md">
+          <h2 className="text-lg font-medium text-primary">Revenue by Month</h2>
           <Chart
             chartType="ColumnChart"
             width="100%"
             height="320px"
             data={revenueColumnData}
             options={{
-              legend: { position: "none" },
+              backgroundColor: "transparent",
+              colors: ["#C6A96B"],
             }}
           />
         </div>
 
-        <div className="p-4 md:p-6 border border-borderColor rounded-md">
-          <h2 className="text-lg font-medium">Booking Status Breakdown</h2>
-          <p className="text-gray-500 mb-4">Distribution by status</p>
-
+        <div className="p-4 md:p-6 border border-gray-200 rounded-md bg-white shadow-md">
+          <h2 className="text-lg font-medium text-primary">
+            Booking Status Breakdown
+          </h2>
           <Chart
             chartType="PieChart"
             width="100%"
             height="320px"
             data={statusPieData}
             options={{
-              pieHole: 0.45,
-              legend: { position: "right" },
+              backgroundColor: "transparent",
+              colors: ["#C6A96B", "#A8894E", "#F5E6B3"],
             }}
           />
         </div>
 
-        <div className="p-4 md:p-6 border border-borderColor rounded-md">
-          <h2 className="text-lg font-medium">Top Cars</h2>
-          <p className="text-gray-500 mb-4">Most booked cars</p>
-
+        <div className="p-4 md:p-6 border border-gray-200 rounded-md bg-white shadow-md">
+          <h2 className="text-lg font-medium text-primary">Top Cars</h2>
           <Chart
             chartType="BarChart"
             width="100%"
             height="320px"
             data={topCarsBarData}
             options={{
-              legend: { position: "none" },
+              backgroundColor: "transparent",
+              colors: ["#C6A96B"],
             }}
           />
         </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { assets, ownerMenuLinks } from "../../assets/assets";
-import { useLocation, NavLink } from "react-router-dom";
+import { useLocation, NavLink, Link } from "react-router-dom";
 import { useAppContext } from "../../context/useAppContext.js";
 import toast from "react-hot-toast";
 
@@ -33,8 +33,15 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="relative min-h-screen md:flex flex-col items-center pt-8 max-w-13 md:max-w-60 w-full border-r border-borderColor text-sm">
-      <div className="flex flex-col items-center gap-2">
+    <div className="relative fixed min-height-screen md:flex flex-col items-center pt-0 max-w-13 md:max-w-60 w-full border-r border-border text-sm bg-dark text-text-main">
+      {/* LOGO + GOLD BORDER */}
+      <div className="w-full flex flex-col items-center pt-6 pb-4 border-b border-primary">
+        <Link to="/">
+          <img src={assets.logo} alt="" className="h-7" />
+        </Link>
+      </div>
+
+      <div className="flex flex-col items-center gap-2 pt-6">
         <div className="relative group w-28 h-28 rounded-full overflow-hidden">
           <label htmlFor="image" className="block w-full h-full cursor-pointer">
             <img
@@ -56,7 +63,7 @@ const Sidebar = () => {
               onChange={(e) => setImage(e.target.files[0])}
             />
 
-            <div className="absolute inset-0 hidden bg-black/20 rounded-full group-hover:flex items-center justify-center">
+            <div className="absolute inset-0 hidden bg-black/30 rounded-full group-hover:flex items-center justify-center">
               <img src={assets.edit_icon} alt="" className="w-5 h-5" />
             </div>
           </label>
@@ -73,7 +80,9 @@ const Sidebar = () => {
       </div>
 
       {/* NAME */}
-      <p className="mt-2 text-base max-md:hidden">{user?.name || "Owner"}</p>
+      <p className="mt-2 text-base max-md:hidden text-text-main font-medium">
+        {user?.name || "Owner"}
+      </p>
 
       {/* MENU */}
       <div className="w-full">
@@ -84,7 +93,7 @@ const Sidebar = () => {
             className={`relative flex items-center gap-2 w-full py-3 pl-4 first:mt-6 ${
               link.path === location.pathname
                 ? "bg-primary/10 text-primary"
-                : "text-gray-600"
+                : "text-text-muted"
             }`}
           >
             <img

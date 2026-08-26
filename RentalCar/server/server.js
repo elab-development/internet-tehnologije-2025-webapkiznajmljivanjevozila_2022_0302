@@ -20,6 +20,8 @@ import documentRouter from "./routes/documentRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
 import integrationsRouter from "./routes/integrationsRoutes.js";
 
+import { securityAudit } from "./middleware/securityAudit.js";
+
 // Initialize Express App
 const app = express();
 
@@ -53,7 +55,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   try {
-    const q = req.query; // pročitaj getter
+    const q = req.query;
     Object.defineProperty(req, "query", {
       value: { ...q },
       writable: true,
@@ -69,7 +71,7 @@ app.use((req, res, next) => {
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 200, // dev OK, u prod može 100
+    max: 200, 
     standardHeaders: true,
     legacyHeaders: false,
   }),
@@ -87,17 +89,17 @@ app.use(
 
 app.use(xss());
 
-// Health
+app.use(securityAudit);
+
+
 app.get("/", (req, res) => res.send("Server is running"));
 
-// Swagger docs
 app.use(
   "/api-docs",
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec, { explorer: true }),
 );
 
-// Routes
 app.use("/api/user", userRouter);
 app.use("/api/owner", ownerRouter);
 app.use("/api/booking", bookingRouter);

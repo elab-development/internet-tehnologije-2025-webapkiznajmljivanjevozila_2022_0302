@@ -1,4 +1,11 @@
-<svg width="15" height="16" viewBox="0 0 15 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M11.8276 6.66732C11.8276 9.99598 8.55185 13.4627 7.45185 14.5333C7.34937 14.6202 7.22463 14.6672 7.09642 14.6672C6.9682 14.6672 6.84346 14.6202 6.74099 14.5333C5.64099 13.4627 2.36523 9.99598 2.36523 6.66732C2.36523 5.25283 2.8637 3.89628 3.75097 2.89608C4.63823 1.89589 5.84163 1.33398 7.09642 1.33398C8.35121 1.33398 9.5546 1.89589 10.4419 2.89608C11.3291 3.89628 11.8276 5.25283 11.8276 6.66732Z" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M7.09646 8.66602C8.07632 8.66602 8.87065 7.77059 8.87065 6.66602C8.87065 5.56145 8.07632 4.66602 7.09646 4.66602C6.1166 4.66602 5.32227 5.56145 5.32227 6.66602C5.32227 7.77059 6.1166 8.66602 7.09646 8.66602Z" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 15 16" style="enable-background:new 0 0 15 16;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#C6A96B;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+</style>
+<path class="st0" d="M11.8,6.7c0,3.3-3.3,6.8-4.4,7.9c-0.1,0.1-0.2,0.1-0.4,0.1c-0.1,0-0.3,0-0.4-0.1C5.6,13.5,2.4,10,2.4,6.7
+	c0-1.4,0.5-2.8,1.4-3.8c0.9-1,2.1-1.6,3.3-1.6s2.5,0.6,3.3,1.6C11.3,3.9,11.8,5.3,11.8,6.7z"/>
+<path class="st0" d="M7.1,8.7c1,0,1.8-0.9,1.8-2s-0.8-2-1.8-2s-1.8,0.9-1.8,2S6.1,8.7,7.1,8.7z"/>
 </svg>

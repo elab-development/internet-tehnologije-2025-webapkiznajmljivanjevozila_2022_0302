@@ -6,6 +6,7 @@ import {
   registerUser,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/auth.js";
+import { loginRateLimiter } from "../middleware/loginRateLimiter.js";
 
 const userRouter = express.Router();
 
@@ -58,7 +59,7 @@ userRouter.post("/register", registerUser);
  *             schema:
  *               $ref: '#/components/schemas/AuthResponse'
  */
-userRouter.post("/login", loginUser);
+userRouter.post("/login", loginRateLimiter, loginUser);
 
 /**
  * @openapi

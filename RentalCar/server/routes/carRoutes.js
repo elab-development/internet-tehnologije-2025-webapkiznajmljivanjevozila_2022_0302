@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllCars } from "../controllers/carController.js";
+import { getAllCars, getCarById } from "../controllers/carController.js";
 
 const carRouter = express.Router();
 
@@ -31,5 +31,25 @@ const carRouter = express.Router();
  *                     $ref: '#/components/schemas/Car'
  */
 carRouter.get("/", getAllCars);
+
+/**
+ * @openapi
+ * /api/cars/{id}:
+ *   get:
+ *     tags: [Cars]
+ *     summary: Jedan auto po ID-u
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Auto
+ *       404:
+ *         description: Auto nije pronađen
+ */
+carRouter.get("/:id", getCarById);
 
 export default carRouter;

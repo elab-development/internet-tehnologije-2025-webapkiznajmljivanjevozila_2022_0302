@@ -1,9 +1,9 @@
-import { useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
 import Cars from "./pages/Cars";
@@ -21,38 +21,72 @@ import Countries from "./pages/Countries";
 import { Toaster } from "react-hot-toast";
 import { useAppContext } from "./context/useAppContext.js";
 
+import ScrollToTop from "./components/ScrollToTop";
+import ScrollToTopButton from "./components/ScrollToTopButton";
+
 const App = () => {
   const { showLogin } = useAppContext();
   const location = useLocation();
 
   const isOwnerPath = location.pathname.startsWith("/owner");
-  const isHomePage = location.pathname === "/";
 
   return (
     <>
-      <Toaster />
-      {!isOwnerPath && <Navbar />}
+      <div className="flex flex-col min-h-screen bg-white text-white">
+        <ScrollToTop />
+        <ScrollToTopButton />
 
-      {/*LOGIN MODAL */}
-      {showLogin && <Login />}
+        <Toaster />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/cars" element={<Cars />} />
-        <Route path="/car-details/:id" element={<CarDetails />} />
-        <Route path="/booking/:id/documents" element={<BookingDocuments />} />
-        <Route path="/my-bookings" element={<MyBookings />} />
-        <Route path="/countries" element={<Countries />} />
+        {!isOwnerPath && <Navbar />}
 
-        <Route path="/owner" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="add-car" element={<AddCar />} />
-          <Route path="manage-cars" element={<ManageCars />} />
-          <Route path="manage-bookings" element={<ManageBookings />} />
-        </Route>
-      </Routes>
+        {showLogin && <Login />}
 
-      {!isOwnerPath && !isHomePage && <Footer />}
+        <div className="flex-1 flex flex-col">
+          <Routes>
+            {/* Javne rute */}
+            <Route path="/" element={<Home />} />
+            <Route path="/cars" element={<Cars />} />
+            <Route path="/car-details/:id" element={<CarDetails />} />
+            <Route path="/countries" element={<Countries />} />
+
+            {/* Zaštićene rute — mora biti ulogovan */}
+            <Route
+              path="/my-bookings"
+              element={
+                <ProtectedRoute requireAuth>
+                  <MyBookings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/booking/:id/documents"
+              element={
+                <ProtectedRoute requireAuth>
+                  <BookingDocuments />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Owner rute — mora biti owner */}
+            <Route
+              path="/owner"
+              element={
+                <ProtectedRoute requireAuth requireOwner>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="add-car" element={<AddCar />} />
+              <Route path="manage-cars" element={<ManageCars />} />
+              <Route path="manage-bookings" element={<ManageBookings />} />
+            </Route>
+          </Routes>
+        </div>
+
+        {!isOwnerPath && <Footer />}
+      </div>
     </>
   );
 };

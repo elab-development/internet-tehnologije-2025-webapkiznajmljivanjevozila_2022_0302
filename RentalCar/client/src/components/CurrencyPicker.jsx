@@ -1,28 +1,52 @@
 import React from "react";
-import { useAppContext } from "../context/useAppContext.js";
+import { useAppContext } from "../context/useAppContext";
 
 const CurrencyPicker = () => {
-  const { currencies, currenciesLoading, selectedCurrency, setSelectedCurrency } = useAppContext();
+  const { selectedCurrency, setSelectedCurrency, currencies } = useAppContext();
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-gray-500">Currency:</span>
+    <div className="relative">
       <select
         value={selectedCurrency}
         onChange={(e) => setSelectedCurrency(e.target.value)}
-        className="border border-borderColor rounded-md px-2 py-1 text-sm bg-white"
-        disabled={currenciesLoading}
+        className="
+        appearance-none
+        bg-transparent
+        text-white
+        border border-[#c6a96b]
+        px-4 py-2 pr-10
+        rounded-full
+        outline-none
+        cursor-pointer
+        hover:shadow-[0_0_12px_rgba(198,169,107,0.4)]
+        transition
+        "
       >
-        {currenciesLoading ? (
-          <option>Loading...</option>
-        ) : (
-          currencies.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))
-        )}
+        {currencies.map((currency) => (
+          <option
+            key={currency}
+            value={currency}
+            className="bg-[#161a20] text-white"
+          >
+            {currency}
+          </option>
+        ))}
       </select>
+
+      {/* GOLD ARROW */}
+      <div
+        className="
+        pointer-events-none
+        absolute
+        right-3
+        top-1/2
+        -translate-y-1/2
+        text-[#c6a96b]
+        text-xs
+        "
+      >
+        ▼
+      </div>
     </div>
   );
 };

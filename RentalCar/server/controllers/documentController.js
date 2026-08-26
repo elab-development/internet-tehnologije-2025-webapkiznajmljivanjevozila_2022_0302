@@ -1,6 +1,15 @@
 import imagekit from "../configs/imageKit.js";
 import Document from "../models/Document.js";
 import User from "../models/User.js";
+import { getExtensionFromMime } from "../middleware/multer.js";
+import { logSecurityEvent } from "../services/securityLogger.js";
+
+const ALLOWED_DOCUMENT_TYPES = [
+  "DRIVING_LICENSE",
+  "ID_CARD",
+  "PASSPORT",
+  "OTHER",
+];
 
 export const uploadDocument = async (req, res) => {
   try {
@@ -8,17 +17,38 @@ export const uploadDocument = async (req, res) => {
     const { documentType } = req.body;
 
     if (!documentType) {
-      return res.status(400).json({ success: false, message: "documentType is required" });
+      return res.status(400).json({
+        success: false,
+        message: "documentType is required",
+      });
+    }
+
+    if (!ALLOWED_DOCUMENT_TYPES.includes(documentType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid documentType",
+      });
     }
 
     if (!req.file) {
-      return res.status(400).json({ success: false, message: "PDF file is required" });
+      return res.status(400).json({
+        success: false,
+        message: "PDF file is required",
+      });
     }
 
-    // upload PDF na ImageKit
+    if (!imagekit) {
+      return res.status(503).json({
+        success: false,
+        message: "Upload service is currently unavailable",
+      });
+    }
+
+    const extension = getExtensionFromMime(req.file.mimetype) || ".pdf";
+
     const uploadRes = await imagekit.upload({
       file: req.file.buffer.toString("base64"),
-      fileName: `doc_${documentType}_${Date.now()}.pdf`,
+      fileName: `doc_${userId}_${documentType}_${Date.now()}${extension}`,
       folder: "/documents",
     });
 
@@ -28,10 +58,27 @@ export const uploadDocument = async (req, res) => {
       fileUrl: uploadRes.url,
     });
 
-    await User.findByIdAndUpdate(userId, { $push: { documents: doc._id } });
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { documents: doc._id },
+    });
 
-    return res.json({ success: true, message: "Document uploaded", document: doc });
+    await logSecurityEvent({
+      event: "DOCUMENT_UPLOAD",
+      userId: req.user?._id,
+      req,
+      status: 201,
+      details: "Document uploaded"
+    });
+    return res.status(201).json({
+      success: true,
+      message: "Document uploaded successfully",
+      document: doc,
+    });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("uploadDocument error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to upload document",
+    });
   }
 };

@@ -2,11 +2,21 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Car from "../models/Car.js";
+import { logSecurityEvent } from "../services/securityLogger.js";
+
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minuta
 
 //Generate JWT Token
-const generateToken = (userId) => {
-  const payload = userId;
-  return jwt.sign(payload, process.env.JWT_SECRET);
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id.toString(),
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
 };
 
 //Register User
@@ -15,15 +25,15 @@ export const registerUser = async (req, res) => {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password || password.length < 8) {
-      return res.json({
+        return res.status(400).json({
         success: false,
-        message: "Fill all the fields",
+        message: "Name, email and password are required, and password must be at least 8 characters long.",
       });
     }
 
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.json({
+      return res.status(409).json({
         success: false,
         message: "User already exists",
       });
@@ -37,16 +47,19 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user);
 
-    res.json({ success: true, token });
+    return res.status(201).json({
+      success: true,
+      token,
+    });
   } catch (error) {
     // error handling
     console.log(error.message);
-    res.json({
-      success: false,
-      message: error.message,
-    });
+    return res.status(500).json({
+    success: false,
+    message: "Server error",
+  });
   }
 };
 
@@ -56,33 +69,89 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
+
+    const invalidMessage = {
+      success: false,
+      message: "Invalid email or password",
+    };
+
     if (!user) {
-      return res.json({
-        success: false,
-        message: "User not found",
+      await logSecurityEvent({
+        event: "LOGIN_FAILED",
+        email,
+        req,
+        status: 401,
+        details: "User not found"
       });
+
+  return res.status(401).json(invalidMessage);
+}
+
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      return res.status(423).json({
+        success: false,
+        message: "Account is temporarily locked. Please try again later.",
+      });
+    }
+
+    if (user.lockUntil && user.lockUntil <= new Date()) {
+      user.loginAttempts = 0;
+      user.lockUntil = null;
+      await user.save();
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
-      return res.json({
-        success: false,
-        message: "Invalid Credentials",
+
+      await logSecurityEvent({
+        event: "LOGIN_FAILED",
+        email,
+        req,
+        status: 401,
+        details: "Invalid password"
       });
+
+      user.loginAttempts += 1;
+
+      if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        user.lockUntil = new Date(Date.now() + LOCK_TIME_MS);
+        await user.save();
+
+        return res.status(423).json({
+          success: false,
+          message: "Account is temporarily locked. Please try again later.",
+        });
+      }
+
+      await user.save();
+
+      return res.status(401).json(invalidMessage);
     }
 
-    const token = generateToken(user._id.toString());
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    await user.save();
 
-    res.json({
+    const token = generateToken(user);
+
+    await logSecurityEvent({
+      event: "LOGIN_SUCCESS",
+      userId: user._id,
+      email: user.email,
+      req,
+      status: 200
+    });
+
+    return res.status(200).json({
       success: true,
       token,
     });
   } catch (error) {
-    // error handling
     console.log(error.message);
-    res.json({
+    return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Server error",
     });
   }
 };
@@ -92,16 +161,16 @@ export const getUserData = async (req, res) => {
   try {
     const { user } = req;
 
-    res.json({
-      success: true,
-      user,
-    });
+    return res.status(200).json({
+    success: true,
+    user,
+  });
   } catch (error) {
     console.log(error.message);
-    res.json({
-      success: false,
-      message: error.message,
-    });
+    return res.status(500).json({
+    success: false,
+    message: "Server error",
+  });
   }
 };
 
@@ -109,9 +178,15 @@ export const getUserData = async (req, res) => {
 export const getCars = async (req, res) => {
   try {
     const cars = await Car.find({ isAvailable: true });
-    res.json({ success: true, cars });
+    return res.status(200).json({
+    success: true,
+    cars,
+  });
   } catch (error) {
     console.log(error.message);
-    res.json({ success: false, message: error.message });
+    return res.status(500).json({
+    success: false,
+    message: "Server error",
+  });
   }
 };

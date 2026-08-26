@@ -1,6 +1,13 @@
 import express from "express";
 import { protect } from "../middleware/auth.js";
-import upload from "../middleware/multer.js";
+import {
+  applyUpload,
+  imageUpload,
+  ensureFilePresent,
+  ensureImageKitConfigured,
+} from "../middleware/multer.js";
+import { requireRole } from "../middleware/roles.js";
+import { getSecurityLogs } from "../controllers/adminSecurityController.js";
 
 import {
   addCar,
@@ -74,7 +81,15 @@ ownerRouter.post("/change-role", protect, changeRoleToOwner);
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  */
-ownerRouter.post("/add-car", protect, upload.single("image"), addCar);
+ownerRouter.post(
+  "/add-car",
+  protect,
+  requireRole("owner", "admin"),
+  ensureImageKitConfigured,
+  applyUpload(imageUpload.single("image")),
+  ensureFilePresent("image"),
+  addCar
+);
 
 /**
  * @openapi
@@ -92,8 +107,12 @@ ownerRouter.post("/add-car", protect, upload.single("image"), addCar);
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  */
-ownerRouter.get("/cars", protect, getOwnerCars);
-
+ownerRouter.get(
+  "/cars",
+  protect,
+  requireRole("owner", "admin"),
+  getOwnerCars
+);
 /**
  * @openapi
  * /api/owner/toggle-car:
@@ -120,8 +139,12 @@ ownerRouter.get("/cars", protect, getOwnerCars);
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  */
-ownerRouter.post("/toggle-car", protect, toggleCarAvailability);
-
+ownerRouter.post(
+  "/toggle-car",
+  protect,
+  requireRole("owner", "admin"),
+  toggleCarAvailability
+);
 /**
  * @openapi
  * /api/owner/delete-car:
@@ -148,8 +171,12 @@ ownerRouter.post("/toggle-car", protect, toggleCarAvailability);
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  */
-ownerRouter.post("/delete-car", protect, deleteCar);
-
+ownerRouter.post(
+  "/delete-car",
+  protect,
+  requireRole("owner", "admin"),
+  deleteCar
+);
 /**
  * @openapi
  * /api/owner/dashboard:
@@ -166,8 +193,12 @@ ownerRouter.post("/delete-car", protect, deleteCar);
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  */
-ownerRouter.get("/dashboard", protect, getDashboardData);
-
+ownerRouter.get(
+  "/dashboard",
+  protect,
+  requireRole("owner", "admin"),
+  getDashboardData
+);
 /**
  * @openapi
  * /api/owner/stats:
@@ -191,8 +222,12 @@ ownerRouter.get("/dashboard", protect, getDashboardData);
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  */
-ownerRouter.get("/stats", protect, getOwnerStats);
-
+ownerRouter.get(
+  "/stats",
+  protect,
+  requireRole("owner", "admin"),
+  getOwnerStats
+);
 /**
  * @openapi
  * /api/owner/update-image:
@@ -220,6 +255,48 @@ ownerRouter.get("/stats", protect, getOwnerStats);
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  */
-ownerRouter.post("/update-image", protect, upload.single("image"), updateUserImage);
+ownerRouter.post(
+  "/update-image",
+  protect,
+  requireRole("owner", "admin"),
+  ensureImageKitConfigured,
+  applyUpload(imageUpload.single("image")),
+  ensureFilePresent("image"),
+  updateUserImage
+);
 
+/**
+ * @openapi
+ * /api/owner/security-logs:
+ *   get:
+ *     tags: [Owner]
+ *     summary: Pregled security logova (admin)
+ *     description: Admin može pregledati sve security događaje (login success, login fail, request audit).
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: event
+ *         schema:
+ *           type: string
+ *         description: Filter po tipu događaja (npr. LOGIN_FAILED)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Broj logova (default 50)
+ *     responses:
+ *       200:
+ *         description: Lista security logova
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ */
+ownerRouter.get(
+  "/security-logs",
+  protect,
+  requireRole("owner", "admin"),
+  getSecurityLogs
+);
 export default ownerRouter;

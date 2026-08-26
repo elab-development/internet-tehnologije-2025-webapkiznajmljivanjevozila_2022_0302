@@ -9,7 +9,7 @@ export const swaggerSpec = swaggerJSDoc({
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "CarTeh API",
+      title: "RentalCar",
       version: "1.0.0",
       description:
         "API specifikacija za web aplikaciju za iznajmljivanje vozila (CarTeh).",
@@ -44,8 +44,8 @@ export const swaggerSpec = swaggerJSDoc({
           type: "object",
           required: ["name", "email", "password"],
           properties: {
-            name: { type: "string", example: "Mina" },
-            email: { type: "string", example: "mina@mail.com" },
+            name: { type: "string", example: "Kristijan" },
+            email: { type: "string", example: "diplomskiKristijan@gmail.com" },
             password: { type: "string", example: "StrongPass123" },
           },
         },
@@ -53,7 +53,7 @@ export const swaggerSpec = swaggerJSDoc({
           type: "object",
           required: ["email", "password"],
           properties: {
-            email: { type: "string", example: "mina@mail.com" },
+            email: { type: "string", example: "diplomskiKristijan@gmail.com" },
             password: { type: "string", example: "StrongPass123" },
           },
         },
