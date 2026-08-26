@@ -100,7 +100,7 @@ const CarDetails = () => {
   if (!car) return <Loader />;
 
   return (
-    <div className="px-6 md:px-16 lg:px-24 xl:px-32 pt-32 pb-40 bg-[#0c0f14] h-full">
+    <div className="px-6 md:px-16 lg:px-24 xl:px-32 pt-32 pb-60 bg-[#0c0f14] h-full">
       {/* BACK BUTTON */}
 
       <button
